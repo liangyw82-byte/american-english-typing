@@ -1,0 +1,2488 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>美国人每天说的话 - 打字练习</title>
+<style>
+:root {
+  --bg: #0f1117;
+  --bg-card: #1a1d27;
+  --bg-hover: #252937;
+  --bg-input: #1e2130;
+  --text: #e4e4e7;
+  --text-dim: #9ca3af;
+  --text-faint: #6b7280;
+  --accent: #6366f1;
+  --accent-hover: #818cf8;
+  --accent-dim: #4f46e5;
+  --success: #22c55e;
+  --error: #ef4444;
+  --warning: #f59e0b;
+  --border: #2d3142;
+  --border-light: #373b4d;
+  --radius: 12px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.3);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 280px;
+  min-width: 280px;
+  background: var(--bg-card);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  overflow: hidden;
+}
+
+.sidebar-header {
+  padding: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sidebar-header h1 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent-hover);
+  margin-bottom: 4px;
+}
+
+.sidebar-header p {
+  font-size: 12px;
+  color: var(--text-faint);
+}
+
+.sidebar-stats {
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+}
+
+.stat-item { color: var(--text-dim); }
+.stat-item span { color: var(--accent-hover); font-weight: 600; font-size: 14px; }
+
+.sidebar-nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+
+.sidebar-nav::-webkit-scrollbar { width: 6px; }
+.sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+.sidebar-nav::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
+
+.chapter-item { margin-bottom: 2px; }
+
+.chapter-header {
+  padding: 10px 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.15s;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  user-select: none;
+}
+
+.chapter-header:hover { background: var(--bg-hover); }
+.chapter-header .arrow {
+  width: 12px; height: 12px;
+  transition: transform 0.2s;
+  flex-shrink: 0;
+  color: var(--text-faint);
+}
+.chapter-item.expanded .chapter-header .arrow { transform: rotate(90deg); }
+
+.chapter-progress {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-faint);
+  font-weight: 400;
+}
+
+.unit-list {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+.chapter-item.expanded .unit-list { max-height: 600px; }
+
+.unit-item {
+  padding: 8px 20px 8px 44px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-dim);
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.unit-item:hover { background: var(--bg-hover); color: var(--text); }
+.unit-item.active { background: var(--accent-dim); color: #fff; }
+.unit-item .unit-check {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--border-light);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+}
+.unit-item.completed .unit-check {
+  background: var(--success);
+  border-color: var(--success);
+  color: #fff;
+}
+.unit-item.completed .unit-check::after { content: '\2713'; }
+
+/* Main content */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.topbar {
+  padding: 16px 32px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-card);
+}
+
+.topbar-left { display: flex; align-items: center; gap: 16px; }
+
+.breadcrumb {
+  font-size: 13px;
+  color: var(--text-dim);
+}
+.breadcrumb span { color: var(--text); font-weight: 600; }
+
+.mode-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-input);
+  border-radius: 8px;
+  padding: 3px;
+}
+
+.mode-tab {
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--text-dim);
+  transition: all 0.15s;
+  border: none;
+  background: none;
+}
+.mode-tab:hover { color: var(--text); }
+.mode-tab.active {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* Practice area */
+.practice-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  overflow-y: auto;
+}
+
+.welcome-screen {
+  text-align: center;
+  max-width: 600px;
+}
+
+.welcome-screen h2 {
+  font-size: 28px;
+  margin-bottom: 12px;
+  color: var(--text);
+}
+
+.welcome-screen p {
+  color: var(--text-dim);
+  font-size: 15px;
+  line-height: 1.7;
+  margin-bottom: 24px;
+}
+
+.welcome-features {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.feature-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  text-align: left;
+}
+
+.feature-card .icon { font-size: 28px; margin-bottom: 8px; }
+.feature-card h3 { font-size: 14px; margin-bottom: 4px; }
+.feature-card p { font-size: 12px; color: var(--text-faint); margin: 0; }
+
+.btn-start {
+  padding: 14px 40px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-start:hover { background: var(--accent-hover); transform: translateY(-1px); }
+
+/* Typing practice */
+.practice-container {
+  width: 100%;
+  max-width: 800px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.progress-bar-container {
+  width: 100%;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  margin-bottom: 32px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+  width: 0%;
+}
+
+.word-display {
+  font-size: 48px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 8px;
+  letter-spacing: 2px;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0;
+}
+
+.char {
+  position: relative;
+  transition: color 0.1s;
+  padding: 0 1px;
+}
+.char.correct { color: var(--success); }
+.char.incorrect { color: var(--error); background: rgba(239,68,68,0.15); border-radius: 2px; }
+.char.pending { color: var(--text-faint); }
+.char.current {
+  color: var(--accent-hover);
+  border-bottom: 3px solid var(--accent);
+  border-radius: 2px;
+}
+
+.word-info {
+  text-align: center;
+  margin-bottom: 24px;
+  min-height: 28px;
+}
+
+.phonetic {
+  font-size: 18px;
+  color: var(--text-dim);
+  font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+.translation {
+  font-size: 16px;
+  color: var(--text-dim);
+  margin-top: 4px;
+}
+
+.sentence-display {
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.sentence-english {
+  font-size: 24px;
+  line-height: 1.6;
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+
+.sentence-chinese {
+  font-size: 15px;
+  color: var(--text-faint);
+}
+
+.input-area {
+  width: 100%;
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.typing-input {
+  width: 100%;
+  padding: 16px 20px;
+  background: var(--bg-input);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 20px;
+  font-family: 'Courier New', monospace;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.typing-input:focus { border-color: var(--accent); }
+.typing-input.incorrect { border-color: var(--error); }
+.typing-input::placeholder { color: var(--text-faint); }
+
+.stats-row {
+  display: flex;
+  gap: 32px;
+  margin-bottom: 24px;
+  justify-content: center;
+}
+
+.stat-box {
+  text-align: center;
+}
+
+.stat-box .value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--accent-hover);
+}
+
+.stat-box .label {
+  font-size: 12px;
+  color: var(--text-faint);
+  margin-top: 2px;
+}
+
+.action-row {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.btn {
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-dim);
+}
+.btn:hover { background: var(--bg-hover); color: var(--text); }
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-primary:hover { background: var(--accent-hover); }
+
+/* Result screen */
+.result-screen {
+  text-align: center;
+  max-width: 500px;
+}
+
+.result-screen h2 {
+  font-size: 24px;
+  margin-bottom: 24px;
+}
+
+.result-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.result-stat {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+
+.result-stat .value { font-size: 32px; font-weight: 700; }
+.result-stat .label { font-size: 13px; color: var(--text-faint); margin-top: 4px; }
+
+/* Word list */
+.word-list-overlay {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.word-chip {
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  border: 1px solid var(--border);
+  color: var(--text-faint);
+  background: var(--bg-card);
+}
+.word-chip.active {
+  border-color: var(--accent);
+  color: var(--accent-hover);
+  background: rgba(99,102,241,0.1);
+}
+.word-chip.done {
+  border-color: var(--success);
+  color: var(--success);
+}
+.word-chip.wrong {
+  border-color: var(--error);
+  color: var(--error);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-faint);
+}
+.empty-state h3 { font-size: 18px; margin-bottom: 8px; color: var(--text-dim); }
+
+/* Dictation mode */
+.dictation-prompt {
+  font-size: 18px;
+  color: var(--text-dim);
+  margin-bottom: 20px;
+  text-align: center;
+}
+.dictation-prompt .listening-icon {
+  font-size: 64px;
+  display: block;
+  margin-bottom: 12px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.1); }
+}
+.dictation-hidden {
+  font-size: 48px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 8px;
+  letter-spacing: 2px;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  color: var(--text);
+}
+.dictation-hidden.dictation-sentence {
+  font-size: 24px;
+  line-height: 1.6;
+  letter-spacing: 1px;
+}
+.dictation-blank {
+  font-size: 48px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 8px;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-faint);
+  letter-spacing: 4px;
+}
+.audio-controls {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+.btn-audio {
+  padding: 12px 28px;
+  border-radius: var(--radius);
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 2px solid var(--accent);
+  background: rgba(99,102,241,0.1);
+  color: var(--accent-hover);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+.btn-audio:hover { background: rgba(99,102,241,0.2); transform: translateY(-1px); }
+.btn-audio.playing {
+  background: var(--accent);
+  color: #fff;
+}
+.btn-reveal {
+  padding: 12px 28px;
+  border-radius: var(--radius);
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 2px solid var(--border-light);
+  background: var(--bg-card);
+  color: var(--text-dim);
+  font-weight: 600;
+}
+.btn-reveal:hover { background: var(--bg-hover); color: var(--text); }
+.dictation-hint {
+  font-size: 13px;
+  color: var(--text-faint);
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+/* Mobile menu button */
+.mobile-menu-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 22px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+.mobile-menu-btn:hover { background: var(--bg-hover); }
+
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 99;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    left: 0; top: 0;
+    z-index: 100;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    width: 260px;
+    min-width: 260px;
+  }
+  .sidebar.open {
+    transform: translateX(0);
+  }
+  .sidebar.open ~ .sidebar-overlay {
+    display: block;
+  }
+  .mobile-menu-btn { display: block; }
+  .topbar {
+    padding: 12px 16px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .topbar-left {
+    flex: 1;
+    min-width: 0;
+  }
+  .breadcrumb {
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .mode-tabs {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .mode-tab {
+    padding: 6px 12px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  .practice-area {
+    padding: 16px;
+  }
+  .word-display {
+    font-size: 28px;
+    letter-spacing: 1px;
+  }
+  .dictation-hidden {
+    font-size: 28px;
+    letter-spacing: 1px;
+  }
+  .dictation-hidden.dictation-sentence {
+    font-size: 16px;
+  }
+  .sentence-english { font-size: 16px; }
+  .sentence-chinese { font-size: 13px; }
+  .typing-input {
+    font-size: 16px;
+    padding: 12px 14px;
+  }
+  .stats-row {
+    gap: 16px;
+  }
+  .stat-box .value { font-size: 20px; }
+  .stat-box .label { font-size: 11px; }
+  .welcome-screen h2 { font-size: 22px; }
+  .welcome-screen p { font-size: 13px; }
+  .welcome-features {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .feature-card { padding: 14px; }
+  .feature-card .icon { font-size: 22px; }
+  .btn-start {
+    padding: 12px 28px;
+    font-size: 14px;
+  }
+  .btn {
+    padding: 8px 16px;
+    font-size: 12px;
+  }
+  .btn-audio, .btn-reveal {
+    padding: 10px 18px;
+    font-size: 13px;
+  }
+  .word-chip {
+    padding: 3px 8px;
+    font-size: 10px;
+  }
+  .dictation-prompt {
+    font-size: 15px;
+  }
+  .dictation-prompt .listening-icon {
+    font-size: 48px;
+  }
+  .result-stats {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .result-stat { padding: 14px; }
+  .result-stat .value { font-size: 24px; }
+  .result-stat .label { font-size: 11px; }
+  .action-row {
+    flex-wrap: wrap;
+  }
+  .progress-bar-container { margin-bottom: 20px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <h1>美国人每天说的话</h1>
+    <p>赖世雄 / 吴纪维 - 打字练习</p>
+  </div>
+  <div class="sidebar-stats">
+    <div class="stat-item">已练 <span id="stat-practiced">0</span></div>
+    <div class="stat-item">已掌握 <span id="stat-mastered">0</span></div>
+    <div class="stat-item">正确率 <span id="stat-accuracy">--</span></div>
+  </div>
+  <div class="sidebar-nav" id="sidebar-nav"></div>
+</div>
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+<!-- Main -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="mobile-menu-btn" onclick="toggleSidebar()">&#9776;</button>
+      <div class="breadcrumb" id="breadcrumb">请选择一个单元开始</div>
+    </div>
+    <div class="mode-tabs" id="mode-tabs">
+      <button class="mode-tab active" data-mode="word">单词模式</button>
+      <button class="mode-tab" data-mode="sentence">句子模式</button>
+      <button class="mode-tab" data-mode="dictation">听写模式</button>
+    </div>
+  </div>
+  <div class="practice-area" id="practice-area"></div>
+</div>
+
+<script>
+// ======================== BOOK DATA ========================
+const bookData = [
+  {
+    chapter: "Chapter 1", title: "Daily Life 生活的样貌",
+    units: [
+      {
+        title: "Unit 1 In the Morning 早安",
+        subtopics: ["起床和迟到", "盥洗和化妆更衣", "早餐"],
+        words: [
+          {word:"alarm clock", phonetic:"/əˈlɑːrm klɑːk/", meaning:"闹钟"},
+          {word:"wake up", phonetic:"/weɪk ʌp/", meaning:"醒来"},
+          {word:"oversleep", phonetic:"/ˌoʊvərˈsliːp/", meaning:"睡过头"},
+          {word:"snooze", phonetic:"/snuːz/", meaning:"打盹；赖床"},
+          {word:"toothbrush", phonetic:"/ˈtuːθbrʌʃ/", meaning:"牙刷"},
+          {word:"toothpaste", phonetic:"/ˈtuːθpeɪst/", meaning:"牙膏"},
+          {word:"razor", phonetic:"/ˈreɪzər/", meaning:"剃须刀"},
+          {word:"makeup", phonetic:"/ˈmeɪkʌp/", meaning:"化妆品"},
+          {word:"get dressed", phonetic:"/ɡet drest/", meaning:"穿好衣服"},
+          {word:"cereal", phonetic:"/ˈsɪriəl/", meaning:"麦片"},
+          {word:"hash browns", phonetic:"/hæʃ braʊnz/", meaning:"薯饼"},
+          {word:"pancakes", phonetic:"/ˈpænkeɪks/", meaning:"美式松饼"},
+          {word:"omelet", phonetic:"/ˈɑːmlət/", meaning:"煎蛋卷"},
+          {word:"bagel", phonetic:"/ˈbeɪɡəl/", meaning:"贝果"},
+          {word:"congee", phonetic:"/ˈkɑːndʒi/", meaning:"粥"}
+        ],
+        sentences: [
+          {en:"Time for breakfast!", cn:"早餐时间到！"},
+          {en:"What do you like for breakfast?", cn:"你喜欢吃什么早餐？"},
+          {en:"I'll have a bowl of cereal for breakfast.", cn:"我要吃一碗麦片当早餐。"},
+          {en:"Breakfast is hash browns and pancakes.", cn:"早餐是薯饼和美式松饼。"},
+          {en:"How about some congee?", cn:"来点粥怎么样？"},
+          {en:"I overslept this morning.", cn:"我今天早上睡过头了。"},
+          {en:"The alarm clock didn't go off.", cn:"闹钟没响。"},
+          {en:"I need to wash my face and brush my teeth.", cn:"我需要洗脸刷牙。"},
+          {en:"She is putting on her makeup.", cn:"她正在化妆。"},
+          {en:"Get dressed quickly, or we'll be late.", cn:"快穿好衣服，不然我们要迟到了。"}
+        ]
+      },
+      {
+        title: "Unit 2 In the House 居家环境",
+        subtopics: ["客厅", "卧房与浴室", "厨房"],
+        words: [
+          {word:"sofa", phonetic:"/ˈsoʊfə/", meaning:"沙发"},
+          {word:"coffee table", phonetic:"/ˈkɔːfi teɪbl/", meaning:"茶几"},
+          {word:"curtain", phonetic:"/ˈkɜːrtən/", meaning:"窗帘"},
+          {word:"wardrobe", phonetic:"/ˈwɔːrdroʊb/", meaning:"衣柜"},
+          {word:"mattress", phonetic:"/ˈmætrəs/", meaning:"床垫"},
+          {word:"pillow", phonetic:"/ˈpɪloʊ/", meaning:"枕头"},
+          {word:"blanket", phonetic:"/ˈblæŋkɪt/", meaning:"毯子"},
+          {word:"bathtub", phonetic:"/ˈbæθtʌb/", meaning:"浴缸"},
+          {word:"shower", phonetic:"/ˈʃaʊər/", meaning:"淋浴"},
+          {word:"faucet", phonetic:"/ˈfɔːsɪt/", meaning:"水龙头"},
+          {word:"stove", phonetic:"/stoʊv/", meaning:"炉子"},
+          {word:"oven", phonetic:"/ˈʌvən/", meaning:"烤箱"},
+          {word:"microwave", phonetic:"/ˈmaɪkrəweɪv/", meaning:"微波炉"},
+          {word:"refrigerator", phonetic:"/rɪˈfrɪdʒəreɪtər/", meaning:"冰箱"},
+          {word:"dishwasher", phonetic:"/ˈdɪʃwɔːʃər/", meaning:"洗碗机"}
+        ],
+        sentences: [
+          {en:"The sofa in the living room is very comfortable.", cn:"客厅里的沙发非常舒服。"},
+          {en:"Please close the curtains.", cn:"请把窗帘拉上。"},
+          {en:"I need to buy a new mattress.", cn:"我需要买一个新床垫。"},
+          {en:"The shower is broken.", cn:"淋浴坏了。"},
+          {en:"Put the leftovers in the refrigerator.", cn:"把剩菜放进冰箱里。"},
+          {en:"Can you preheat the oven for me?", cn:"你能帮我预热烤箱吗？"},
+          {en:"The dishwasher is running.", cn:"洗碗机正在运行。"},
+          {en:"She folded the blanket neatly.", cn:"她把毯子叠得整整齐齐。"}
+        ]
+      },
+      {
+        title: "Unit 3 Maintenance 环境整理",
+        subtopics: ["打扫与洗衣服", "园艺", "故障维修与工具"],
+        words: [
+          {word:"vacuum cleaner", phonetic:"/ˈvækjuːm ˈkliːnər/", meaning:"吸尘器"},
+          {word:"mop", phonetic:"/mɑːp/", meaning:"拖把"},
+          {word:"broom", phonetic:"/bruːm/", meaning:"扫帚"},
+          {word:"detergent", phonetic:"/dɪˈtɜːrdʒənt/", meaning:"洗涤剂"},
+          {word:"laundry", phonetic:"/ˈlɔːndri/", meaning:"待洗的衣服"},
+          {word:"washing machine", phonetic:"/ˈwɑːʃɪŋ məˈʃiːn/", meaning:"洗衣机"},
+          {word:"dryer", phonetic:"/ˈdraɪər/", meaning:"烘干机"},
+          {word:"iron", phonetic:"/ˈaɪərn/", meaning:"熨斗"},
+          {word:"wrench", phonetic:"/rentʃ/", meaning:"扳手"},
+          {word:"screwdriver", phonetic:"/ˈskruːdraɪvər/", meaning:"螺丝刀"},
+          {word:"hammer", phonetic:"/ˈhæmər/", meaning:"锤子"},
+          {word:"plunger", phonetic:"/ˈplʌndʒər/", meaning:"疏通器"}
+        ],
+        sentences: [
+          {en:"I need to do the laundry today.", cn:"我今天需要洗衣服。"},
+          {en:"Can you vacuum the living room?", cn:"你能吸一下客厅吗？"},
+          {en:"The washing machine is leaking.", cn:"洗衣机漏水了。"},
+          {en:"Put the clothes in the dryer.", cn:"把衣服放进烘干机里。"},
+          {en:"I need a screwdriver to fix this.", cn:"我需要一把螺丝刀来修这个。"},
+          {en:"She ironed the shirt carefully.", cn:"她仔细地熨烫衬衫。"},
+          {en:"The toilet is clogged, use the plunger.", cn:"马桶堵了，用疏通器通一下。"},
+          {en:"He mopped the floor clean.", cn:"他把地板拖干净了。"}
+        ]
+      },
+      {
+        title: "Unit 4 Interpersonal Relations 人际关系",
+        subtopics: ["情绪与表达", "家人与亲友", "恋爱与感情状态"],
+        words: [
+          {word:"excited", phonetic:"/ɪkˈsaɪtɪd/", meaning:"兴奋的"},
+          {word:"frustrated", phonetic:"/ˈfrʌstreɪtɪd/", meaning:"沮丧的"},
+          {word:"grateful", phonetic:"/ˈɡreɪtfəl/", meaning:"感激的"},
+          {word:"jealous", phonetic:"/ˈdʒeləs/", meaning:"嫉妒的"},
+          {word:"relatives", phonetic:"/ˈrelətɪvz/", meaning:"亲戚"},
+          {word:"cousin", phonetic:"/ˈkʌzn/", meaning:"表兄弟姐妹"},
+          {word:"in-laws", phonetic:"/ˈɪn lɔːz/", meaning:"姻亲"},
+          {word:"crush", phonetic:"/krʌʃ/", meaning:"暗恋对象"},
+          {word:"break up", phonetic:"/breɪk ʌp/", meaning:"分手"},
+          {word:"propose", phonetic:"/prəˈpoʊz/", meaning:"求婚"}
+        ],
+        sentences: [
+          {en:"I'm so excited about the trip!", cn:"我对这次旅行感到非常兴奋！"},
+          {en:"She felt frustrated after the exam.", cn:"考试后她感到很沮丧。"},
+          {en:"I'm grateful for your help.", cn:"我很感激你的帮助。"},
+          {en:"My cousin is coming to visit.", cn:"我表哥要来看我。"},
+          {en:"They broke up last month.", cn:"他们上个月分手了。"},
+          {en:"He proposed to her on the beach.", cn:"他在海滩上向她求婚了。"},
+          {en:"We're going to visit our relatives for Christmas.", cn:"我们要去拜访亲戚过圣诞节。"}
+        ]
+      },
+      {
+        title: "Unit 5 Health 个人健康",
+        subtopics: ["睡眠", "维持身材", "身体不适与就诊"],
+        words: [
+          {word:"insomnia", phonetic:"/ɪnˈsɑːmniə/", meaning:"失眠"},
+          {word:"drowsy", phonetic:"/ˈdraʊzi/", meaning:"昏昏欲睡的"},
+          {word:"workout", phonetic:"/ˈwɜːrkaʊt/", meaning:"锻炼"},
+          {word:"jogging", phonetic:"/ˈdʒɑːɡɪŋ/", meaning:"慢跑"},
+          {word:"diet", phonetic:"/ˈdaɪət/", meaning:"饮食"},
+          {word:"sore throat", phonetic:"/sɔːr θroʊt/", meaning:"喉咙痛"},
+          {word:"fever", phonetic:"/ˈfiːvər/", meaning:"发烧"},
+          {word:"prescription", phonetic:"/prɪˈskrɪpʃn/", meaning:"处方"},
+          {word:"appointment", phonetic:"/əˈpɔɪntmənt/", meaning:"预约"},
+          {word:"symptom", phonetic:"/ˈsɪmptəm/", meaning:"症状"}
+        ],
+        sentences: [
+          {en:"I've been suffering from insomnia lately.", cn:"我最近一直失眠。"},
+          {en:"I feel drowsy after taking the medicine.", cn:"吃药后我感到昏昏欲睡。"},
+          {en:"I do a workout every morning.", cn:"我每天早上锻炼。"},
+          {en:"She goes jogging in the park.", cn:"她在公园里慢跑。"},
+          {en:"I have a sore throat and a fever.", cn:"我喉咙痛还发烧。"},
+          {en:"I need to make an appointment with the doctor.", cn:"我需要预约看医生。"},
+          {en:"What are your symptoms?", cn:"你有什么症状？"},
+          {en:"The doctor gave me a prescription.", cn:"医生给我开了处方。"}
+        ]
+      }
+    ]
+  },
+  {
+    chapter: "Chapter 2", title: "Food & Drinks 美食大平台",
+    units: [
+      {
+        title: "Unit 1 Ingredients 食材",
+        subtopics: ["海鲜与肉类", "谷物与乳制品", "蔬果"],
+        words: [
+          {word:"salmon", phonetic:"/ˈsæmən/", meaning:"三文鱼"},
+          {word:"shrimp", phonetic:"/ʃrɪmp/", meaning:"虾"},
+          {word:"beef", phonetic:"/biːf/", meaning:"牛肉"},
+          {word:"pork", phonetic:"/pɔːrk/", meaning:"猪肉"},
+          {word:"chicken", phonetic:"/ˈtʃɪkɪn/", meaning:"鸡肉"},
+          {word:"rice", phonetic:"/raɪs/", meaning:"米饭"},
+          {word:"oats", phonetic:"/oʊts/", meaning:"燕麦"},
+          {word:"cheese", phonetic:"/tʃiːz/", meaning:"奶酪"},
+          {word:"yogurt", phonetic:"/ˈjoʊɡərt/", meaning:"酸奶"},
+          {word:"butter", phonetic:"/ˈbʌtər/", meaning:"黄油"},
+          {word:"spinach", phonetic:"/ˈspɪnɪtʃ/", meaning:"菠菜"},
+          {word:"broccoli", phonetic:"/ˈbrɑːkəli/", meaning:"西兰花"},
+          {word:"avocado", phonetic:"/ˌævəˈkɑːdoʊ/", meaning:"牛油果"},
+          {word:"strawberry", phonetic:"/ˈstrɔːberi/", meaning:"草莓"}
+        ],
+        sentences: [
+          {en:"I'd like to have grilled salmon for dinner.", cn:"我晚餐想吃烤三文鱼。"},
+          {en:"The shrimp is very fresh today.", cn:"今天的虾很新鲜。"},
+          {en:"Do you eat beef or pork?", cn:"你吃牛肉还是猪肉？"},
+          {en:"She is allergic to cheese.", cn:"她对奶酪过敏。"},
+          {en:"Would you like some yogurt with your oats?", cn:"你的燕麦要配酸奶吗？"},
+          {en:"I need to buy spinach and broccoli.", cn:"我需要买菠菜和西兰花。"},
+          {en:"The strawberries are sweet this season.", cn:"这个季节的草莓很甜。"}
+        ]
+      },
+      {
+        title: "Unit 2 Cooking & Tasting 烹调与品尝",
+        subtopics: ["香料、调味料与酱料", "口感与味道", "烹调方式与厨具"],
+        words: [
+          {word:"pepper", phonetic:"/ˈpepər/", meaning:"胡椒"},
+          {word:"garlic", phonetic:"/ˈɡɑːrlɪk/", meaning:"大蒜"},
+          {word:"ginger", phonetic:"/ˈdʒɪndʒər/", meaning:"姜"},
+          {word:"soy sauce", phonetic:"/sɔɪ sɔːs/", meaning:"酱油"},
+          {word:"ketchup", phonetic:"/ˈketʃəp/", meaning:"番茄酱"},
+          {word:"crispy", phonetic:"/ˈkrɪspi/", meaning:"酥脆的"},
+          {word:"tender", phonetic:"/ˈtendər/", meaning:"嫩的"},
+          {word:"spicy", phonetic:"/ˈspaɪsi/", meaning:"辣的"},
+          {word:"sour", phonetic:"/ˈsaʊər/", meaning:"酸的"},
+          {word:"grill", phonetic:"/ɡrɪl/", meaning:"烤"},
+          {word:"fry", phonetic:"/fraɪ/", meaning:"炸"},
+          {word:"steam", phonetic:"/stiːm/", meaning:"蒸"},
+          {word:"wok", phonetic:"/wɑːk/", meaning:"炒锅"},
+          {word:"spatula", phonetic:"/ˈspætʃələ/", meaning:"锅铲"}
+        ],
+        sentences: [
+          {en:"Add some garlic and ginger to the dish.", cn:"菜里加点大蒜和姜。"},
+          {en:"The fried chicken is very crispy.", cn:"炸鸡非常酥脆。"},
+          {en:"This soup is too spicy for me.", cn:"这个汤对我来说太辣了。"},
+          {en:"The steak is very tender.", cn:"牛排很嫩。"},
+          {en:"Do you want to grill or fry the fish?", cn:"你想烤鱼还是炸鱼？"},
+          {en:"She steamed the vegetables.", cn:"她蒸了蔬菜。"},
+          {en:"Pass me the soy sauce, please.", cn:"请把酱油递给我。"},
+          {en:"This lemon is really sour.", cn:"这个柠檬真酸。"}
+        ]
+      },
+      {
+        title: "Unit 3 Foreign Dishes 各国料理",
+        subtopics: ["美式与意式料理", "中式美食与夜市小吃", "其他异国美食"],
+        words: [
+          {word:"hamburger", phonetic:"/ˈhæmbɜːrɡər/", meaning:"汉堡"},
+          {word:"hot dog", phonetic:"/hɑːt dɔːɡ/", meaning:"热狗"},
+          {word:"pizza", phonetic:"/ˈpiːtsə/", meaning:"披萨"},
+          {word:"pasta", phonetic:"/ˈpɑːstə/", meaning:"意面"},
+          {word:"lasagna", phonetic:"/ləˈzɑːnjə/", meaning:"千层面"},
+          {word:"dumpling", phonetic:"/ˈdʌmplɪŋ/", meaning:"饺子"},
+          {word:"noodles", phonetic:"/ˈnuːdlz/", meaning:"面条"},
+          {word:"fried rice", phonetic:"/fraɪd raɪs/", meaning:"炒饭"},
+          {word:"sushi", phonetic:"/ˈsuːʃi/", meaning:"寿司"},
+          {word:"taco", phonetic:"/ˈtɑːkoʊ/", meaning:"墨西哥卷饼"},
+          {word:"curry", phonetic:"/ˈkɜːri/", meaning:"咖喱"},
+          {word:"kebab", phonetic:"/kɪˈbɑːb/", meaning:"烤肉串"}
+        ],
+        sentences: [
+          {en:"Let's grab a hamburger for lunch.", cn:"我们午饭吃个汉堡吧。"},
+          {en:"I ordered a pepperoni pizza.", cn:"我点了一个意式辣肠披萨。"},
+          {en:"Do you prefer pasta or rice?", cn:"你更喜欢意面还是米饭？"},
+          {en:"The dumplings here are delicious.", cn:"这里的饺子很好吃。"},
+          {en:"Let's get some sushi tonight.", cn:"今晚去吃寿司吧。"},
+          {en:"I love spicy curry.", cn:"我喜欢辣咖喱。"},
+          {en:"She had two tacos for breakfast.", cn:"她早餐吃了两个墨西哥卷饼。"},
+          {en:"The fried rice is too salty.", cn:"炒饭太咸了。"}
+        ]
+      },
+      {
+        title: "Unit 4 Restaurants & Foods 餐厅类型与餐点",
+        subtopics: ["咖啡厅", "摊贩与速食店", "西餐厅与小酒馆"],
+        words: [
+          {word:"café", phonetic:"/kæˈfeɪ/", meaning:"咖啡馆"},
+          {word:"latte", phonetic:"/ˈlɑːteɪ/", meaning:"拿铁"},
+          {word:"espresso", phonetic:"/eˈspresoʊ/", meaning:"浓缩咖啡"},
+          {word:"cappuccino", phonetic:"/ˌkæpuˈtʃiːnoʊ/", meaning:"卡布奇诺"},
+          {word:"food truck", phonetic:"/fuːd trʌk/", meaning:"餐车"},
+          {word:"drive-through", phonetic:"/draɪv θruː/", meaning:"得来速"},
+          {word:"buffet", phonetic:"/bəˈfeɪ/", meaning:"自助餐"},
+          {word:"steakhouse", phonetic:"/ˈsteɪkhaʊs/", meaning:"牛排馆"},
+          {word:"pub", phonetic:"/pʌb/", meaning:"酒馆"},
+          {word:"bartender", phonetic:"/ˈbɑːrtendər/", meaning:"酒保"}
+        ],
+        sentences: [
+          {en:"I'll have a latte, please.", cn:"请给我一杯拿铁。"},
+          {en:"The food truck serves great tacos.", cn:"那辆餐车的墨西哥卷饼很好吃。"},
+          {en:"Let's go to the buffet tonight.", cn:"今晚去吃自助餐吧。"},
+          {en:"She works as a bartender at the pub.", cn:"她在酒馆当酒保。"},
+          {en:"I ordered my steak medium rare.", cn:"我的牛排要三分熟。"},
+          {en:"The espresso is very strong.", cn:"浓缩咖啡很浓。"},
+          {en:"Let's use the drive-through.", cn:"我们走得来速吧。"}
+        ]
+      },
+      {
+        title: "Unit 5 Restaurant Services 餐厅服务",
+        subtopics: ["餐厅订位与入座", "用餐", "用餐结束"],
+        words: [
+          {word:"reservation", phonetic:"/ˌrezərˈveɪʃn/", meaning:"预订"},
+          {word:"waiter", phonetic:"/ˈweɪtər/", meaning:"服务员"},
+          {word:"menu", phonetic:"/ˈmenjuː/", meaning:"菜单"},
+          {word:"appetizer", phonetic:"/ˈæpɪtaɪzər/", meaning:"开胃菜"},
+          {word:"main course", phonetic:"/meɪn kɔːrs/", meaning:"主菜"},
+          {word:"dessert", phonetic:"/dɪˈzɜːrt/", meaning:"甜点"},
+          {word:"bill", phonetic:"/bɪl/", meaning:"账单"},
+          {word:"tip", phonetic:"/tɪp/", meaning:"小费"},
+          {word:"to go", phonetic:"/tu ɡoʊ/", meaning:"外带"},
+          {word:"leftovers", phonetic:"/ˈleftoʊvərz/", meaning:"剩菜"}
+        ],
+        sentences: [
+          {en:"I'd like to make a reservation for two.", cn:"我想预订两人的位子。"},
+          {en:"Could we see the menu, please?", cn:"请给我们看看菜单好吗？"},
+          {en:"The appetizer is on the house.", cn:"开胃菜是餐厅赠送的。"},
+          {en:"What would you like for your main course?", cn:"主菜您想吃什么？"},
+          {en:"Can I get the bill, please?", cn:"请给我账单。"},
+          {en:"Let's leave a 20% tip.", cn:"我们留20%的小费吧。"},
+          {en:"I'd like this to go, please.", cn:"这个我要外带。"},
+          {en:"Can I get a box for the leftovers?", cn:"能给我一个打包盒装剩菜吗？"}
+        ]
+      }
+    ]
+  },
+  {
+    chapter: "Chapter 3", title: "Holidays & Social Occasions 社交达人",
+    units: [
+      {
+        title: "Unit 1 Social 101 基本社交用语",
+        subtopics: ["问候寒暄", "道别与邀约", "其他社交情境"],
+        words: [
+          {word:"greeting", phonetic:"/ˈɡriːtɪŋ/", meaning:"问候"},
+          {word:"handshake", phonetic:"/ˈhændʃeɪk/", meaning:"握手"},
+          {word:"compliment", phonetic:"/ˈkɑːmplɪmənt/", meaning:"称赞"},
+          {word:"farewell", phonetic:"/ˌferˈwel/", meaning:"告别"},
+          {word:"invitation", phonetic:"/ˌɪnvɪˈteɪʃn/", meaning:"邀请"},
+          {word:"RSVP", phonetic:"/ˌɑːr es viː piː/", meaning:"请回复"},
+          {word:"hang out", phonetic:"/hæŋ aʊt/", meaning:"闲逛"},
+          {word:"catch up", phonetic:"/kætʃ ʌp/", meaning:"叙旧"}
+        ],
+        sentences: [
+          {en:"How's it going?", cn:"最近怎么样？"},
+          {en:"It's been a while! Let's catch up.", cn:"好久不见了！我们叙叙旧吧。"},
+          {en:"I'd like to invite you to dinner.", cn:"我想请你吃晚饭。"},
+          {en:"Please RSVP by Friday.", cn:"请在周五前回复。"},
+          {en:"Let's hang out this weekend.", cn:"这周末一起出去玩吧。"},
+          {en:"Take care and see you soon.", cn:"保重，希望很快再见到你。"},
+          {en:"What a nice compliment!", cn:"真是让人高兴的称赞！"}
+        ]
+      },
+      {
+        title: "Unit 2 Popular Topics 热门话题",
+        subtopics: ["谈论天气", "体育赛事", "影视娱乐"],
+        words: [
+          {word:"forecast", phonetic:"/ˈfɔːrkæst/", meaning:"天气预报"},
+          {word:"humidity", phonetic:"/hjuːˈmɪdəti/", meaning:"湿度"},
+          {word:"championship", phonetic:"/ˈtʃæmpiənʃɪp/", meaning:"锦标赛"},
+          {word:"score", phonetic:"/skɔːr/", meaning:"比分"},
+          {word:"quarterback", phonetic:"/ˈkwɔːrtərbæk/", meaning:"四分卫"},
+          {word:"box office", phonetic:"/bɑːks ˈɑːfɪs/", meaning:"票房"},
+          {word:"sequel", phonetic:"/ˈsiːkwəl/", meaning:"续集"},
+          {word:"streaming", phonetic:"/ˈstriːmɪŋ/", meaning:"流媒体"}
+        ],
+        sentences: [
+          {en:"The forecast says it'll rain tomorrow.", cn:"天气预报说明天会下雨。"},
+          {en:"The humidity is unbearable today.", cn:"今天的湿度让人受不了。"},
+          {en:"Who won the championship?", cn:"谁赢了锦标赛？"},
+          {en:"The score is tied at 2-2.", cn:"比分2比2平。"},
+          {en:"That movie broke box office records.", cn:"那部电影打破了票房纪录。"},
+          {en:"Are they making a sequel?", cn:"他们会拍续集吗？"},
+          {en:"I watched it on a streaming platform.", cn:"我在流媒体平台上看的。"}
+        ]
+      },
+      {
+        title: "Unit 3 Social Occasions 社交场合",
+        subtopics: ["婚宴派对", "庆生会与婴儿送礼会", "丧礼"],
+        words: [
+          {word:"wedding", phonetic:"/ˈwedɪŋ/", meaning:"婚礼"},
+          {word:"bride", phonetic:"/braɪd/", meaning:"新娘"},
+          {word:"groom", phonetic:"/ɡruːm/", meaning:"新郎"},
+          {word:"birthday party", phonetic:"/ˈbɜːrθdeɪ ˈpɑːrti/", meaning:"生日派对"},
+          {word:"baby shower", phonetic:"/ˈbeɪbi ˈʃaʊər/", meaning:"婴儿送礼会"},
+          {word:"funeral", phonetic:"/ˈfjuːnərəl/", meaning:"葬礼"},
+          {word:"condolence", phonetic:"/kənˈdoʊlns/", meaning:"哀悼"},
+          {word:"eulogy", phonetic:"/ˈjuːlədʒi/", meaning:"悼词"}
+        ],
+        sentences: [
+          {en:"The wedding was beautiful.", cn:"婚礼很美。"},
+          {en:"The bride looked stunning.", cn:"新娘看起来美极了。"},
+          {en:"Are you going to her birthday party?", cn:"你会去她的生日派对吗？"},
+          {en:"We're throwing a baby shower for Sarah.", cn:"我们要为莎拉办一场婴儿送礼会。"},
+          {en:"Please accept my condolences.", cn:"请接受我的哀悼。"},
+          {en:"He gave a touching eulogy.", cn:"他致了感人的悼词。"},
+          {en:"The groom was very nervous.", cn:"新郎非常紧张。"}
+        ]
+      },
+      {
+        title: "Unit 4 Holidays (I) 重要节日（一）",
+        subtopics: ["情人节", "复活节与圣帕特里克节", "美国国庆日"],
+        words: [
+          {word:"Valentine's Day", phonetic:"/ˈvæləntaɪnz deɪ/", meaning:"情人节"},
+          {word:"chocolate", phonetic:"/ˈtʃɑːkələt/", meaning:"巧克力"},
+          {word:"bouquet", phonetic:"/buˈkeɪ/", meaning:"花束"},
+          {word:"Easter", phonetic:"/ˈiːstər/", meaning:"复活节"},
+          {word:"Easter egg", phonetic:"/ˈiːstər eɡ/", meaning:"复活节彩蛋"},
+          {word:"parade", phonetic:"/pəˈreɪd/", meaning:"游行"},
+          {word:"Independence Day", phonetic:"/ˌɪndɪˈpendəns deɪ/", meaning:"美国独立日"},
+          {word:"fireworks", phonetic:"/ˈfaɪərwɜːrks/", meaning:"烟花"}
+        ],
+        sentences: [
+          {en:"Happy Valentine's Day!", cn:"情人节快乐！"},
+          {en:"He gave her a bouquet of roses.", cn:"他给了她一束玫瑰。"},
+          {en:"The kids had an Easter egg hunt.", cn:"孩子们进行了找复活节彩蛋活动。"},
+          {en:"Are you going to watch the parade?", cn:"你要去看游行吗？"},
+          {en:"We watched the fireworks on Independence Day.", cn:"我们在独立日看了烟花。"},
+          {en:"She loves chocolate more than anything.", cn:"她最爱巧克力了。"}
+        ]
+      },
+      {
+        title: "Unit 5 Holidays (II) 重要节日（二）",
+        subtopics: ["万圣节", "感恩节", "圣诞节与跨年"],
+        words: [
+          {word:"Halloween", phonetic:"/ˌhæloʊˈiːn/", meaning:"万圣节"},
+          {word:"costume", phonetic:"/ˈkɑːstuːm/", meaning:"服装"},
+          {word:"trick or treat", phonetic:"/trɪk ɔːr triːt/", meaning:"不给糖就捣蛋"},
+          {word:"Thanksgiving", phonetic:"/ˌθæŋksˈɡɪvɪŋ/", meaning:"感恩节"},
+          {word:"turkey", phonetic:"/ˈtɜːrki/", meaning:"火鸡"},
+          {word:"gratitude", phonetic:"/ˈɡrætɪtuːd/", meaning:"感恩"},
+          {word:"Christmas", phonetic:"/ˈkrɪsməs/", meaning:"圣诞节"},
+          {word:"Santa Claus", phonetic:"/ˈsæntə klɔːz/", meaning:"圣诞老人"},
+          {word:"New Year's Eve", phonetic:"/nuː jɪrz iːv/", meaning:"跨年夜"},
+          {word:"resolution", phonetic:"/ˌrezəˈluːʃn/", meaning:"新年决心"}
+        ],
+        sentences: [
+          {en:"What are you going to be for Halloween?", cn:"你万圣节要扮什么？"},
+          {en:"The kids went trick or treating.", cn:"孩子们去要糖了。"},
+          {en:"We're having turkey for Thanksgiving.", cn:"感恩节我们吃火鸡。"},
+          {en:"Merry Christmas!", cn:"圣诞快乐！"},
+          {en:"Did you sit on Santa's lap?", cn:"你坐在圣诞老人腿上了吗？"},
+          {en:"What's your New Year's resolution?", cn:"你的新年决心是什么？"},
+          {en:"Let's count down to midnight on New Year's Eve.", cn:"我们在跨年夜一起倒计时到午夜吧。"}
+        ]
+      }
+    ]
+  },
+  {
+    chapter: "Chapter 4", title: "Recreation & Entertainment 休闲娱乐",
+    units: [
+      {
+        title: "Unit 1 Movies & Music 电影及音乐",
+        subtopics: ["看电影", "讨论电影", "讨论音乐"],
+        words: [
+          {word:"box office", phonetic:"/bɑːks ˈɑːfɪs/", meaning:"票房"},
+          {word:"trailer", phonetic:"/ˈtreɪlər/", meaning:"预告片"},
+          {word:"director", phonetic:"/dəˈrektər/", meaning:"导演"},
+          {word:"soundtrack", phonetic:"/ˈsaʊndtræk/", meaning:"电影配乐"},
+          {word:"genre", phonetic:"/ˈʒɑːnrə/", meaning:"类型"},
+          {word:"lyrics", phonetic:"/ˈlɪrɪks/", meaning:"歌词"},
+          {word:"melody", phonetic:"/ˈmelədi/", meaning:"旋律"},
+          {word:"concert", phonetic:"/ˈkɑːnsərt/", meaning:"演唱会"}
+        ],
+        sentences: [
+          {en:"Have you seen the trailer for the new movie?", cn:"你看了新电影的预告片吗？"},
+          {en:"Who directed this film?", cn:"这部电影是谁导演的？"},
+          {en:"The soundtrack is amazing.", cn:"电影配乐太棒了。"},
+          {en:"What genre of music do you like?", cn:"你喜欢什么类型的音乐？"},
+          {en:"I can't remember the lyrics.", cn:"我记不住歌词。"},
+          {en:"We're going to a concert tonight.", cn:"我们今晚去听演唱会。"},
+          {en:"This melody is so catchy.", cn:"这个旋律太好记了。"}
+        ]
+      },
+      {
+        title: "Unit 2 In the Nightclub 在夜店",
+        subtopics: ["去夜店", "点酒和饮料", "跳舞搭讪"],
+        words: [
+          {word:"bartender", phonetic:"/ˈbɑːrtendər/", meaning:"酒保"},
+          {word:"cocktail", phonetic:"/ˈkɑːkteɪl/", meaning:"鸡尾酒"},
+          {word:"shot", phonetic:"/ʃɑːt/", meaning:"一口干"},
+          {word:"dance floor", phonetic:"/dæns flɔːr/", meaning:"舞池"},
+          {word:"DJ", phonetic:"/ˌdiː ˈdʒeɪ/", meaning:"DJ"},
+          {word:"cheers", phonetic:"/tʃɪrz/", meaning:"干杯"},
+          {word:"last call", phonetic:"/læst kɔːl/", meaning:"最后一次点酒"}
+        ],
+        sentences: [
+          {en:"I'll have a cocktail, please.", cn:"请给我一杯鸡尾酒。"},
+          {en:"Let's do a shot together!", cn:"我们一起干一杯吧！"},
+          {en:"The DJ is playing great music tonight.", cn:"今晚DJ放的音乐很棒。"},
+          {en:"Everyone is on the dance floor.", cn:"所有人都在舞池里。"},
+          {en:"Cheers to the weekend!", cn:"为周末干杯！"},
+          {en:"Last call is in 15 minutes.", cn:"最后一次点酒还有15分钟。"}
+        ]
+      },
+      {
+        title: "Unit 3 Sports & Household Entertainment 运动与居家娱乐",
+        subtopics: ["运动与运动场地", "去健身房", "宅在家"],
+        words: [
+          {word:"basketball", phonetic:"/ˈbæskɪtbɔːl/", meaning:"篮球"},
+          {word:"tennis", phonetic:"/ˈtenɪs/", meaning:"网球"},
+          {word:"stadium", phonetic:"/ˈsteɪdiəm/", meaning:"体育场"},
+          {word:"treadmill", phonetic:"/ˈtredmɪl/", meaning:"跑步机"},
+          {word:"dumbbell", phonetic:"/ˈdʌmbel/", meaning:"哑铃"},
+          {word:"yoga", phonetic:"/ˈjoʊɡə/", meaning:"瑜伽"},
+          {word:"binge-watch", phonetic:"/bɪndʒ wɑːtʃ/", meaning:"刷剧"},
+          {word:"video game", phonetic:"/ˈvɪdioʊ ɡeɪm/", meaning:"电子游戏"}
+        ],
+        sentences: [
+          {en:"Let's play basketball this Saturday.", cn:"这周六一起打篮球吧。"},
+          {en:"The stadium was packed with fans.", cn:"体育场挤满了球迷。"},
+          {en:"I run on the treadmill for 30 minutes.", cn:"我在跑步机上跑30分钟。"},
+          {en:"She does yoga every morning.", cn:"她每天早上做瑜伽。"},
+          {en:"We binge-watched the whole season.", cn:"我们把整季都刷完了。"},
+          {en:"He plays video games all day.", cn:"他整天打电子游戏。"},
+          {en:"Can you pass me the dumbbells?", cn:"你能把哑铃递给我吗？"}
+        ]
+      },
+      {
+        title: "Unit 4 Art & Cultural Activities 艺文活动",
+        subtopics: ["阅读", "博物馆", "剧院与音乐会"],
+        words: [
+          {word:"novel", phonetic:"/ˈnɑːvl/", meaning:"小说"},
+          {word:"bestseller", phonetic:"/ˌbestˈselər/", meaning:"畅销书"},
+          {word:"exhibition", phonetic:"/ˌeksɪˈbɪʃn/", meaning:"展览"},
+          {word:"sculpture", phonetic:"/ˈskʌlptʃər/", meaning:"雕塑"},
+          {word:"gallery", phonetic:"/ˈɡæləri/", meaning:"画廊"},
+          {word:"orchestra", phonetic:"/ˈɔːrkɪstrə/", meaning:"管弦乐队"},
+          {word:"intermission", phonetic:"/ˌɪntərˈmɪʃn/", meaning:"中场休息"},
+          {word:"balcony", phonetic:"/ˈbælkəni/", meaning:"楼座"}
+        ],
+        sentences: [
+          {en:"I'm reading a fascinating novel.", cn:"我在读一本引人入胜的小说。"},
+          {en:"This book is a bestseller.", cn:"这本书是畅销书。"},
+          {en:"The exhibition features modern art.", cn:"这个展览展出的是现代艺术。"},
+          {en:"The sculpture is breathtaking.", cn:"这座雕塑令人叹为观止。"},
+          {en:"The orchestra played beautifully.", cn:"管弦乐队演奏得很美。"},
+          {en:"We'll get snacks during intermission.", cn:"中场休息时我们去买零食。"},
+          {en:"Our seats are in the balcony.", cn:"我们的座位在楼座。"}
+        ]
+      },
+      {
+        title: "Unit 5 Outdoor Activities 户外活动",
+        subtopics: ["海边活动", "健行与露营", "游乐园"],
+        words: [
+          {word:"surfing", phonetic:"/ˈsɜːrfɪŋ/", meaning:"冲浪"},
+          {word:"sunscreen", phonetic:"/ˈsʌnskriːn/", meaning:"防晒霜"},
+          {word:"hiking", phonetic:"/ˈhaɪkɪŋ/", meaning:"健行"},
+          {word:"campfire", phonetic:"/ˈkæmpfaɪər/", meaning:"篝火"},
+          {word:"tent", phonetic:"/tent/", meaning:"帐篷"},
+          {word:"roller coaster", phonetic:"/ˈroʊlər koʊstər/", meaning:"过山车"},
+          {word:"ferris wheel", phonetic:"/ˈferɪs wiːl/", meaning:"摩天轮"},
+          {word:"souvenir", phonetic:"/ˌsuːvəˈnɪr/", meaning:"纪念品"}
+        ],
+        sentences: [
+          {en:"Let's go surfing this weekend!", cn:"这周末去冲浪吧！"},
+          {en:"Don't forget to put on sunscreen.", cn:"别忘了涂防晒霜。"},
+          {en:"The hiking trail is 5 miles long.", cn:"这条健行步道有5英里长。"},
+          {en:"We sat around the campfire telling stories.", cn:"我们围坐在篝火旁讲故事。"},
+          {en:"The roller coaster was terrifying!", cn:"过山车太吓人了！"},
+          {en:"Let's buy a souvenir from the gift shop.", cn:"我们去礼品店买个纪念品吧。"},
+          {en:"The ferris wheel offers a great view.", cn:"摩天轮上的风景很棒。"}
+        ]
+      }
+    ]
+  },
+  {
+    chapter: "Chapter 5", title: "Shopping 购物",
+    units: [
+      {
+        title: "Unit 1 Shopping Places 各类商店",
+        subtopics: ["便利商店", "量贩店与购物中心", "市场"],
+        words: [
+          {word:"convenience store", phonetic:"/kənˈviːniəns stɔːr/", meaning:"便利店"},
+          {word:"shopping mall", phonetic:"/ˈʃɑːpɪŋ mɔːl/", meaning:"购物中心"},
+          {word:"supermarket", phonetic:"/ˈsuːpərmɑːrkɪt/", meaning:"超市"},
+          {word:"grocery", phonetic:"/ˈɡroʊsəri/", meaning:"食品杂货"},
+          {word:"cashier", phonetic:"/kæˈʃɪr/", meaning:"收银员"},
+          {word:"checkout", phonetic:"/ˈtʃekaʊt/", meaning:"结账"},
+          {word:"receipt", phonetic:"/rɪˈsiːt/", meaning:"收据"},
+          {word:"shopping cart", phonetic:"/ˈʃɑːpɪŋ kɑːrt/", meaning:"购物车"}
+        ],
+        sentences: [
+          {en:"I need to stop by the convenience store.", cn:"我需要去一下便利店。"},
+          {en:"The shopping mall is huge.", cn:"这个购物中心很大。"},
+          {en:"Where is the checkout?", cn:"结账在哪里？"},
+          {en:"Keep the receipt, please.", cn:"请保留收据。"},
+          {en:"The cashier was very friendly.", cn:"收银员很友好。"},
+          {en:"Can I get a shopping cart?", cn:"能给我一辆购物车吗？"},
+          {en:"We need to buy groceries for the week.", cn:"我们需要买一周的食品杂货。"}
+        ]
+      },
+      {
+        title: "Unit 2 Shopping Procedures 购物流程",
+        subtopics: ["价格与优惠", "销售服务", "付款与运送"],
+        words: [
+          {word:"discount", phonetic:"/ˈdɪskaʊnt/", meaning:"折扣"},
+          {word:"on sale", phonetic:"/ɑːn seɪl/", meaning:"特价中"},
+          {word:"coupon", phonetic:"/ˈkuːpɑːn/", meaning:"优惠券"},
+          {word:"refund", phonetic:"/ˈriːfʌnd/", meaning:"退款"},
+          {word:"exchange", phonetic:"/ɪksˈtʃeɪndʒ/", meaning:"换货"},
+          {word:"warranty", phonetic:"/ˈwɔːrənti/", meaning:"保修"},
+          {word:"credit card", phonetic:"/ˈkredɪt kɑːrd/", meaning:"信用卡"},
+          {word:"delivery", phonetic:"/dɪˈlɪvəri/", meaning:"送货"}
+        ],
+        sentences: [
+          {en:"Is this on sale?", cn:"这个在特价吗？"},
+          {en:"I have a coupon for 20% off.", cn:"我有打八折的优惠券。"},
+          {en:"Can I get a refund on this?", cn:"这个可以退款吗？"},
+          {en:"I'd like to exchange this for a different size.", cn:"我想换个不同的尺码。"},
+          {en:"Does it come with a warranty?", cn:"这个有保修吗？"},
+          {en:"Can I pay by credit card?", cn:"我可以用信用卡付款吗？"},
+          {en:"Is delivery free?", cn:"送货免费吗？"}
+        ]
+      },
+      {
+        title: "Unit 3 Daily Necessities 日常必需品",
+        subtopics: ["家居消耗品", "保养品", "急救箱与药品"],
+        words: [
+          {word:"tissue", phonetic:"/ˈtɪʃuː/", meaning:"纸巾"},
+          {word:"toilet paper", phonetic:"/ˈtɔɪlət ˈpeɪpər/", meaning:"卫生纸"},
+          {word:"shampoo", phonetic:"/ʃæmˈpuː/", meaning:"洗发水"},
+          {word:"lotion", phonetic:"/ˈloʊʃn/", meaning:"乳液"},
+          {word:"sunscreen", phonetic:"/ˈsʌnskriːn/", meaning:"防晒霜"},
+          {word:"band-aid", phonetic:"/ˈbændeɪd/", meaning:"创可贴"},
+          {word:"painkiller", phonetic:"/ˈpeɪnkɪlər/", meaning:"止痛药"},
+          {word:"first aid kit", phonetic:"/fɜːrst eɪd kɪt/", meaning:"急救箱"}
+        ],
+        sentences: [
+          {en:"We're out of tissues.", cn:"我们纸巾用完了。"},
+          {en:"I need to buy more toilet paper.", cn:"我需要多买点卫生纸。"},
+          {en:"This lotion is great for dry skin.", cn:"这款乳液适合干性皮肤。"},
+          {en:"Do you have any painkillers?", cn:"你有止痛药吗？"},
+          {en:"Put a band-aid on the cut.", cn:"在伤口上贴个创可贴。"},
+          {en:"Every home should have a first aid kit.", cn:"每个家庭都应有急救箱。"},
+          {en:"Don't forget to apply sunscreen.", cn:"别忘了涂防晒霜。"}
+        ]
+      },
+      {
+        title: "Unit 4 Fashion & Trends (I) 潮流时尚（一）",
+        subtopics: ["上衣款式", "下着款式", "布料与图案"],
+        words: [
+          {word:"T-shirt", phonetic:"/ˈtiː ʃɜːrt/", meaning:"T恤"},
+          {word:"hoodie", phonetic:"/ˈhʊdi/", meaning:"连帽衫"},
+          {word:"blouse", phonetic:"/blaʊz/", meaning:"女衬衫"},
+          {word:"underwear", phonetic:"/ˈʌndərwer/", meaning:"内衣"},
+          {word:"socks", phonetic:"/sɑːks/", meaning:"袜子"},
+          {word:"cotton", phonetic:"/ˈkɑːtn/", meaning:"棉"},
+          {word:"silk", phonetic:"/sɪlk/", meaning:"丝绸"},
+          {word:"striped", phonetic:"/straɪpt/", meaning:"条纹的"},
+          {word:"plaid", phonetic:"/plæd/", meaning:"格纹的"}
+        ],
+        sentences: [
+          {en:"He's wearing a blue T-shirt.", cn:"他穿着一件蓝色T恤。"},
+          {en:"That hoodie looks comfortable.", cn:"那件连帽衫看起来很舒服。"},
+          {en:"This blouse is made of silk.", cn:"这件女衬衫是丝绸的。"},
+          {en:"I prefer cotton over polyester.", cn:"我更喜欢棉而不是涤纶。"},
+          {en:"She loves striped shirts.", cn:"她喜欢条纹衬衫。"},
+          {en:"Do you have this in plaid?", cn:"这个有格纹的吗？"},
+          {en:"I need to buy new socks.", cn:"我需要买新袜子。"}
+        ]
+      },
+      {
+        title: "Unit 5 Fashion & Trends (II) 潮流时尚（二）",
+        subtopics: ["配件（一）", "配件（二）", "轮廓剪裁与穿衣风格"],
+        words: [
+          {word:"necklace", phonetic:"/ˈnekləs/", meaning:"项链"},
+          {word:"earrings", phonetic:"/ˈɪrɪŋz/", meaning:"耳环"},
+          {word:"bracelet", phonetic:"/ˈbreɪslət/", meaning:"手链"},
+          {word:"sunglasses", phonetic:"/ˈsʌnɡlæsɪz/", meaning:"太阳镜"},
+          {word:"backpack", phonetic:"/ˈbækpæk/", meaning:"双肩包"},
+          {word:"vintage", phonetic:"/ˈvɪntɪdʒ/", meaning:"复古的"},
+          {word:"casual", phonetic:"/ˈkæʒuəl/", meaning:"休闲的"},
+          {word:"formal", phonetic:"/ˈfɔːrml/", meaning:"正式的"}
+        ],
+        sentences: [
+          {en:"That necklace is beautiful.", cn:"那条项链很漂亮。"},
+          {en:"I love your earrings!", cn:"我喜欢你的耳环！"},
+          {en:"She always wears sunglasses.", cn:"她总是戴着太阳镜。"},
+          {en:"This is a vintage bag.", cn:"这是一个复古包。"},
+          {en:"The dress code is casual.", cn:"着装要求是休闲的。"},
+          {en:"It's a formal event.", cn:"这是一个正式的活动。"},
+          {en:"He carries a leather backpack.", cn:"他背着一个皮质双肩包。"}
+        ]
+      }
+    ]
+  },
+  {
+    chapter: "Chapter 6", title: "Traveling 开心出国游",
+    units: [
+      {
+        title: "Unit 1 Travel Plans 旅行规划",
+        subtopics: ["行程与住宿", "护照、签证与货币", "打包行李"],
+        words: [
+          {word:"itinerary", phonetic:"/aɪˈtɪnəreri/", meaning:"行程表"},
+          {word:"passport", phonetic:"/ˈpæspɔːrt/", meaning:"护照"},
+          {word:"visa", phonetic:"/ˈviːzə/", meaning:"签证"},
+          {word:"currency", phonetic:"/ˈkɜːrənsi/", meaning:"货币"},
+          {word:"exchange rate", phonetic:"/ɪksˈtʃeɪndʒ reɪt/", meaning:"汇率"},
+          {word:"suitcase", phonetic:"/ˈsuːtkeɪs/", meaning:"行李箱"},
+          {word:"luggage", phonetic:"/ˈlʌɡɪdʒ/", meaning:"行李"},
+          {word:"carry-on", phonetic:"/ˈkæri ɑːn/", meaning:"随身行李"}
+        ],
+        sentences: [
+          {en:"What's your itinerary for the trip?", cn:"你的旅行行程是什么？"},
+          {en:"Don't forget your passport.", cn:"别忘了带护照。"},
+          {en:"Do I need a visa for Japan?", cn:"我去日本需要签证吗？"},
+          {en:"What's the exchange rate today?", cn:"今天的汇率是多少？"},
+          {en:"My suitcase is too heavy.", cn:"我的行李箱太重了。"},
+          {en:"This is my carry-on bag.", cn:"这是我的随身行李。"},
+          {en:"How much luggage can I bring?", cn:"我可以带多少行李？"}
+        ]
+      },
+      {
+        title: "Unit 2 Going to the Airport 搭飞机",
+        subtopics: ["抵达机场", "飞机上", "入境"],
+        words: [
+          {word:"check-in", phonetic:"/tʃek ɪn/", meaning:"办理登机"},
+          {word:"boarding pass", phonetic:"/ˈbɔːrdɪŋ pæs/", meaning:"登机牌"},
+          {word:"departure", phonetic:"/dɪˈpɑːrtʃər/", meaning:"出发"},
+          {word:"arrival", phonetic:"/əˈraɪvəl/", meaning:"抵达"},
+          {word:"gate", phonetic:"/ɡeɪt/", meaning:"登机口"},
+          {word:"aisle seat", phonetic:"/aɪl siːt/", meaning:"靠走道座位"},
+          {word:"window seat", phonetic:"/ˈwɪndoʊ siːt/", meaning:"靠窗座位"},
+          {word:"immigration", phonetic:"/ˌɪmɪˈɡreɪʃn/", meaning:"入境检查"},
+          {word:"customs", phonetic:"/ˈkʌstəmz/", meaning:"海关"}
+        ],
+        sentences: [
+          {en:"Where is the check-in counter?", cn:"办理登机的柜台在哪里？"},
+          {en:"Here is your boarding pass.", cn:"这是您的登机牌。"},
+          {en:"The departure is at 10 AM.", cn:"出发时间是上午10点。"},
+          {en:"My gate is B12.", cn:"我的登机口是B12。"},
+          {en:"I'd like a window seat.", cn:"我想要靠窗的座位。"},
+          {en:"Please go through immigration first.", cn:"请先通过入境检查。"},
+          {en:"Do you have anything to declare at customs?", cn:"您在海关有什么要申报的吗？"}
+        ]
+      },
+      {
+        title: "Unit 3 Hotels 饭店",
+        subtopics: ["入住", "饭店人员与设施", "客房与饭店服务"],
+        words: [
+          {word:"reception", phonetic:"/rɪˈsepʃn/", meaning:"前台"},
+          {word:"reservation", phonetic:"/ˌrezərˈveɪʃn/", meaning:"预订"},
+          {word:"key card", phonetic:"/kiː kɑːrd/", meaning:"房卡"},
+          {word:"suite", phonetic:"/swiːt/", meaning:"套房"},
+          {word:"housekeeping", phonetic:"/ˈhaʊskiːpɪŋ/", meaning:"客房服务"},
+          {word:"room service", phonetic:"/ruːm ˈsɜːrvɪs/", meaning:"客房送餐"},
+          {word:"concierge", phonetic:"/kɑːnsiˈerʒ/", meaning:"礼宾部"},
+          {word:"checkout", phonetic:"/ˈtʃekaʊt/", meaning:"退房"}
+        ],
+        sentences: [
+          {en:"I have a reservation under Smith.", cn:"我用史密斯的名字预订了房间。"},
+          {en:"Here is your key card.", cn:"这是您的房卡。"},
+          {en:"We booked a suite.", cn:"我们订了一间套房。"},
+          {en:"Housekeeping comes every morning.", cn:"客房服务每天早上来。"},
+          {en:"I'd like to order room service.", cn:"我想点客房送餐。"},
+          {en:"Ask the concierge for recommendations.", cn:"向礼宾部询问推荐。"},
+          {en:"Checkout is at 11 AM.", cn:"退房时间是上午11点。"}
+        ]
+      },
+      {
+        title: "Unit 4 On a Trip 旅行中",
+        subtopics: ["热门旅游地区与城市", "必去旅游景点", "终极旅游清单"],
+        words: [
+          {word:"landmark", phonetic:"/ˈlændmɑːrk/", meaning:"地标"},
+          {word:"monument", phonetic:"/ˈmɑːnjumənt/", meaning:"纪念碑"},
+          {word:"souvenir", phonetic:"/ˌsuːvəˈnɪr/", meaning:"纪念品"},
+          {word:"itinerary", phonetic:"/aɪˈtɪnəreri/", meaning:"行程"},
+          {word:"tour guide", phonetic:"/tʊr ɡaɪd/", meaning:"导游"},
+          {word:"sightseeing", phonetic:"/ˈsaɪtsiːɪŋ/", meaning:"观光"},
+          {word:"bucket list", phonetic:"/ˈbʌkɪt lɪst/", meaning:"遗愿清单"}
+        ],
+        sentences: [
+          {en:"The Eiffel Tower is a famous landmark.", cn:"埃菲尔铁塔是著名的地标。"},
+          {en:"We bought souvenirs at the gift shop.", cn:"我们在礼品店买了纪念品。"},
+          {en:"Our tour guide was very knowledgeable.", cn:"我们的导游知识渊博。"},
+          {en:"Let's go sightseeing tomorrow.", cn:"我们明天去观光吧。"},
+          {en:"This is on my bucket list.", cn:"这是我的遗愿清单上的。"},
+          {en:"The monument commemorates the war.", cn:"这座纪念碑纪念那场战争。"}
+        ]
+      },
+      {
+        title: "Unit 5 Accidents & Going Home 旅途意外与回国",
+        subtopics: ["旅途意外", "回到家", "分享经验与纪念品"],
+        words: [
+          {word:"lost luggage", phonetic:"/lɑːst ˈlʌɡɪdʒ/", meaning:"丢失的行李"},
+          {word:"pickpocket", phonetic:"/ˈpɪkpɑːkɪt/", meaning:"扒手"},
+          {word:"travel insurance", phonetic:"/ˈtrævl ɪnˈʃʊrəns/", meaning:"旅行保险"},
+          {word:"jet lag", phonetic:"/dʒet læɡ/", meaning:"时差"},
+          {word:"homesick", phonetic:"/ˈhoʊmsɪk/", meaning:"想家的"},
+          {word:"slideshow", phonetic:"/ˈslaɪdoʊ/", meaning:"幻灯片展示"}
+        ],
+        sentences: [
+          {en:"My luggage is lost.", cn:"我的行李丢了。"},
+          {en:"Watch out for pickpockets.", cn:"小心扒手。"},
+          {en:"Do you have travel insurance?", cn:"你有旅行保险吗？"},
+          {en:"I'm suffering from jet lag.", cn:"我在倒时差。"},
+          {en:"She felt homesick after a week.", cn:"一周后她想家了。"},
+          {en:"Let me show you a slideshow of the trip.", cn:"让我给你看看旅行的幻灯片。"}
+        ]
+      }
+    ]
+  },
+  {
+    chapter: "Chapter 7", title: "Transportation 交通",
+    units: [
+      {
+        title: "Unit 1 Mass Transportation 大众交通",
+        subtopics: ["公车", "火车与地铁", "水上运输"],
+        words: [
+          {word:"bus stop", phonetic:"/bʌs stɑːp/", meaning:"公交站"},
+          {word:"fare", phonetic:"/fer/", meaning:"车费"},
+          {word:"transfer", phonetic:"/trænsˈfɜːr/", meaning:"换乘"},
+          {word:"high-speed train", phonetic:"/haɪ spiːd treɪn/", meaning:"高速列车"},
+          {word:"subway", phonetic:"/ˈsʌbweɪ/", meaning:"地铁"},
+          {word:"platform", phonetic:"/ˈplætfɔːrm/", meaning:"站台"},
+          {word:"carriage", phonetic:"/ˈkærɪdʒ/", meaning:"火车车厢"},
+          {word:"dining car", phonetic:"/ˈdaɪnɪŋ kɑːr/", meaning:"餐车"},
+          {word:"sleeper", phonetic:"/ˈsliːpər/", meaning:"卧铺"},
+          {word:"conductor", phonetic:"/kənˈdʌktər/", meaning:"列车长"},
+          {word:"timetable", phonetic:"/ˈtaɪmteɪbl/", meaning:"时刻表"},
+          {word:"ferry", phonetic:"/ˈferi/", meaning:"渡轮"}
+        ],
+        sentences: [
+          {en:"All aboard!", cn:"所有乘客都上车了！要开车了！"},
+          {en:"The high-speed rail is quicker than the country train.", cn:"高速铁路比纵贯列车还要快。"},
+          {en:"A driverless train shuttles between the two airport terminals.", cn:"这列无人驾驶列车往返穿梭在机场的两个航站之间。"},
+          {en:"The dining car is at the front of the train.", cn:"餐车在列车前方。"},
+          {en:"Our sleeper is in sleeping-car B.", cn:"我们的卧铺在B节卧铺车厢。"},
+          {en:"The train engineer wears a uniform.", cn:"那位火车司机穿着制服。"},
+          {en:"I'll buy a ticket from the conductor.", cn:"我会向列车长买车票。"},
+          {en:"Ask the station master for a timetable.", cn:"去问火车站站长询问时刻表。"},
+          {en:"How much is the fare?", cn:"车费多少钱？"},
+          {en:"We need to transfer at the next stop.", cn:"我们需要在下一站换乘。"},
+          {en:"The ferry crosses the river every hour.", cn:"渡轮每小时过河一次。"},
+          {en:"Which platform does the train depart from?", cn:"火车从哪个站台出发？"}
+        ]
+      },
+      {
+        title: "Unit 2 Personal Transportation 个人交通",
+        subtopics: ["轿车与出租车", "自行车与摩托车", "考驾照"],
+        words: [
+          {word:"sedan", phonetic:"/sɪˈdæn/", meaning:"轿车"},
+          {word:"SUV", phonetic:"/ˌes juː ˈviː/", meaning:"SUV"},
+          {word:"taxi", phonetic:"/ˈtæksi/", meaning:"出租车"},
+          {word:"meter", phonetic:"/ˈmiːtər/", meaning:"计价器"},
+          {word:"bicycle", phonetic:"/ˈbaɪsɪkl/", meaning:"自行车"},
+          {word:"motorcycle", phonetic:"/ˈmoʊtərsaɪkl/", meaning:"摩托车"},
+          {word:"helmet", phonetic:"/ˈhelmɪt/", meaning:"头盔"},
+          {word:"driver's license", phonetic:"/ˈdraɪvərz ˈlaɪsəns/", meaning:"驾照"}
+        ],
+        sentences: [
+          {en:"Call a taxi for me, please.", cn:"请帮我叫一辆出租车。"},
+          {en:"The meter is still running.", cn:"计价器还在跑。"},
+          {en:"Always wear a helmet when riding a motorcycle.", cn:"骑摩托车一定要戴头盔。"},
+          {en:"I'm studying for my driver's license test.", cn:"我在为驾照考试学习。"},
+          {en:"She rides her bicycle to work.", cn:"她骑自行车上班。"},
+          {en:"He just bought a new SUV.", cn:"他刚买了一辆新SUV。"},
+          {en:"The sedan is more fuel-efficient.", cn:"轿车更省油。"}
+        ]
+      },
+      {
+        title: "Unit 3 Traffic Rules 道路规范",
+        subtopics: ["方向与路线", "交通标志与道路类型", "交通违规与道路临检"],
+        words: [
+          {word:"intersection", phonetic:"/ˌɪntərˈsekʃn/", meaning:"十字路口"},
+          {word:"roundabout", phonetic:"/ˈraʊndəbaʊt/", meaning:"环岛"},
+          {word:"speed limit", phonetic:"/spiːd ˈlɪmɪt/", meaning:"限速"},
+          {word:"traffic light", phonetic:"/ˈtræfɪk laɪt/", meaning:"红绿灯"},
+          {word:"crosswalk", phonetic:"/ˈkrɔːswɔːk/", meaning:"人行横道"},
+          {word:"speeding", phonetic:"/ˈspiːdɪŋ/", meaning:"超速"},
+          {word:"parking ticket", phonetic:"/ˈpɑːrkɪŋ ˈtɪkɪt/", meaning:"违章停车罚单"},
+          {word:"checkpoint", phonetic:"/ˈtʃekpɔɪnt/", meaning:"检查站"}
+        ],
+        sentences: [
+          {en:"Turn right at the intersection.", cn:"在十字路口右转。"},
+          {en:"The speed limit here is 65 mph.", cn:"这里的限速是65英里每小时。"},
+          {en:"Wait for the traffic light to turn green.", cn:"等红绿灯变绿。"},
+          {en:"Always use the crosswalk.", cn:"请走人行横道。"},
+          {en:"He got a ticket for speeding.", cn:"他因超速被开了罚单。"},
+          {en:"There's a checkpoint ahead.", cn:"前面有检查站。"},
+          {en:"I got a parking ticket downtown.", cn:"我在市中心被开了违章停车罚单。"}
+        ]
+      },
+      {
+        title: "Unit 4 Driving on the Road 行车事宜",
+        subtopics: ["加油站与休息站", "租车", "停车"],
+        words: [
+          {word:"gas station", phonetic:"/ɡæs ˈsteɪʃn/", meaning:"加油站"},
+          {word:"unleaded", phonetic:"/ʌnˈledɪd/", meaning:"无铅汽油"},
+          {word:"rest area", phonetic:"/rest ˈeriə/", meaning:"休息站"},
+          {word:"rental car", phonetic:"/ˈrentl kɑːr/", meaning:"租赁车"},
+          {word:"insurance", phonetic:"/ɪnˈʃʊrəns/", meaning:"保险"},
+          {word:"parking lot", phonetic:"/ˈpɑːrkɪŋ lɑːt/", meaning:"停车场"},
+          {word:"parking meter", phonetic:"/ˈpɑːrkɪŋ ˈmiːtər/", meaning:"停车计时器"},
+          {word:"valet parking", phonetic:"/væˈleɪ ˈpɑːrkɪŋ/", meaning:"代客泊车"}
+        ],
+        sentences: [
+          {en:"We need to stop at a gas station.", cn:"我们需要在加油站停一下。"},
+          {en:"Fill it up with unleaded, please.", cn:"请加满无铅汽油。"},
+          {en:"Let's take a break at the rest area.", cn:"我们在休息站休息一下吧。"},
+          {en:"I rented a car for the weekend.", cn:"我周末租了一辆车。"},
+          {en:"Does the rental include insurance?", cn:"租车包含保险吗？"},
+          {en:"The parking lot is full.", cn:"停车场满了。"},
+          {en:"Is valet parking available?", cn:"有代客泊车服务吗？"},
+          {en:"Put money in the parking meter.", cn:"在停车计时器里投币。"}
+        ]
+      },
+      {
+        title: "Unit 5 Accident 交通意外",
+        subtopics: ["事故纠纷", "车辆故障", "交通麻烦"],
+        words: [
+          {word:"rear-end", phonetic:"/rɪr end/", meaning:"追尾"},
+          {word:"fender bender", phonetic:"/ˈfendər ˈbendər/", meaning:"小擦撞"},
+          {word:"flat tire", phonetic:"/flæt ˈtaɪər/", meaning:"爆胎"},
+          {word:"tow truck", phonetic:"/toʊ trʌk/", meaning:"拖车"},
+          {word:"mechanic", phonetic:"/məˈkænɪk/", meaning:"修理工"},
+          {word:"breakdown", phonetic:"/ˈbreɪkdaʊn/", meaning:"抛锚"},
+          {word:"traffic jam", phonetic:"/ˈtræfɪk dʒæm/", meaning:"交通堵塞"},
+          {word:"detour", phonetic:"/ˈdiːtʊr/", meaning:"绕道"}
+        ],
+        sentences: [
+          {en:"I got rear-ended at the stoplight.", cn:"我在红绿灯前被追尾了。"},
+          {en:"It was just a fender bender.", cn:"只是个小擦撞。"},
+          {en:"We have a flat tire.", cn:"我们爆胎了。"},
+          {en:"Call a tow truck immediately.", cn:"立刻叫拖车。"},
+          {en:"The mechanic said it's a minor issue.", cn:"修理工说问题不大。"},
+          {en:"We had a breakdown on the highway.", cn:"我们在高速公路上抛锚了。"},
+          {en:"There's a huge traffic jam ahead.", cn:"前方大堵车。"},
+          {en:"We need to take a detour.", cn:"我们需要绕道。"}
+        ]
+      }
+    ]
+  },
+  {
+    chapter: "Chapter 8", title: "On Campus 校园生活",
+    units: [
+      {
+        title: "Unit 1 Registering Courses 修课",
+        subtopics: ["学校与学位", "学科与课程", "选课与课程规定"],
+        words: [
+          {word:"bachelor's degree", phonetic:"/ˈbætʃələrz dɪˈɡriː/", meaning:"学士学位"},
+          {word:"master's degree", phonetic:"/ˈmæstərz dɪˈɡriː/", meaning:"硕士学位"},
+          {word:"PhD", phonetic:"/ˌpiː eɪtʃ ˈdiː/", meaning:"博士学位"},
+          {word:"major", phonetic:"/ˈmeɪdʒər/", meaning:"专业"},
+          {word:"minor", phonetic:"/ˈmaɪnər/", meaning:"辅修"},
+          {word:"semester", phonetic:"/sɪˈmestər/", meaning:"学期"},
+          {word:"enroll", phonetic:"/ɪnˈroʊl/", meaning:"注册选课"},
+          {word:"prerequisite", phonetic:"/priːˈrekwɪzɪt/", meaning:"先修课"}
+        ],
+        sentences: [
+          {en:"I'm pursuing a bachelor's degree in computer science.", cn:"我在攻读计算机科学学士学位。"},
+          {en:"What's your major?", cn:"你的专业是什么？"},
+          {en:"I want to minor in business.", cn:"我想辅修商科。"},
+          {en:"When does the semester start?", cn:"这学期什么时候开学？"},
+          {en:"I need to enroll in three more courses.", cn:"我需要再选三门课。"},
+          {en:"Is this course a prerequisite?", cn:"这门课是先修课吗？"},
+          {en:"She's working on her PhD.", cn:"她在读博士。"}
+        ]
+      },
+      {
+        title: "Unit 2 Campus Life 校园生活",
+        subtopics: ["社团与活动", "打工与实习", "住宿生活"],
+        words: [
+          {word:"club", phonetic:"/klʌb/", meaning:"社团"},
+          {word:"extracurricular", phonetic:"/ˌekstrəkəˈrɪkjələr/", meaning:"课外的"},
+          {word:"part-time job", phonetic:"/pɑːrt taɪm dʒɑːb/", meaning:"兼职"},
+          {word:"internship", phonetic:"/ˈɪntɜːrnʃɪp/", meaning:"实习"},
+          {word:"dormitory", phonetic:"/ˈdɔːrmətɔːri/", meaning:"宿舍"},
+          {word:"roommate", phonetic:"/ˈruːmmeɪt/", meaning:"室友"},
+          {word:"cafeteria", phonetic:"/ˌkæfəˈtɪriə/", meaning:"食堂"}
+        ],
+        sentences: [
+          {en:"I joined the photography club.", cn:"我加入了摄影社。"},
+          {en:"She has a part-time job at the bookstore.", cn:"她在书店兼职。"},
+          {en:"I got a summer internship at a tech company.", cn:"我在一家科技公司获得了暑期实习。"},
+          {en:"My roommate is very neat.", cn:"我的室友很爱干净。"},
+          {en:"The cafeteria food is okay.", cn:"食堂的饭菜还行。"},
+          {en:"Extracurricular activities are important.", cn:"课外活动很重要。"},
+          {en:"I live in the dormitory.", cn:"我住在宿舍里。"}
+        ]
+      },
+      {
+        title: "Unit 3 Campus Environment 校园环境",
+        subtopics: ["教职人员", "校园建筑、办公室与服务", "教室设备"],
+        words: [
+          {word:"professor", phonetic:"/prəˈfesər/", meaning:"教授"},
+          {word:"lecturer", phonetic:"/ˈlektʃərər/", meaning:"讲师"},
+          {word:"dean", phonetic:"/diːn/", meaning:"院长"},
+          {word:"library", phonetic:"/ˈlaɪbreri/", meaning:"图书馆"},
+          {word:"auditorium", phonetic:"/ˌɔːdɪˈtɔːriəm/", meaning:"礼堂"},
+          {word:"laboratory", phonetic:"/ˈlæbrətɔːri/", meaning:"实验室"},
+          {word:"projector", phonetic:"/prəˈdʒektər/", meaning:"投影仪"},
+          {word:"whiteboard", phonetic:"/ˈwaɪtbɔːrd/", meaning:"白板"}
+        ],
+        sentences: [
+          {en:"The professor is very knowledgeable.", cn:"教授知识渊博。"},
+          {en:"I need to talk to the dean.", cn:"我需要和院长谈谈。"},
+          {en:"The library is open until midnight.", cn:"图书馆开放到午夜。"},
+          {en:"The lecture is in the auditorium.", cn:"讲座在礼堂举行。"},
+          {en:"We have chemistry lab in the laboratory.", cn:"我们在实验室上化学实验课。"},
+          {en:"The projector isn't working.", cn:"投影仪坏了。"},
+          {en:"Write it on the whiteboard.", cn:"写在白板上。"}
+        ]
+      },
+      {
+        title: "Unit 4 Study 学习",
+        subtopics: ["文具用品", "去图书馆", "作业与考试"],
+        words: [
+          {word:"notebook", phonetic:"/ˈnoʊtbʊk/", meaning:"笔记本"},
+          {word:"highlighter", phonetic:"/ˈhaɪlaɪtər/", meaning:"荧光笔"},
+          {word:"binder", phonetic:"/ˈbaɪndər/", meaning:"活页夹"},
+          {word:"assignment", phonetic:"/əˈsaɪnmənt/", meaning:"作业"},
+          {word:"deadline", phonetic:"/ˈdedlaɪn/", meaning:"截止日期"},
+          {word:"quiz", phonetic:"/kwɪz/", meaning:"小测验"},
+          {word:"midterm", phonetic:"/ˈmɪdtɜːrm/", meaning:"期中考试"},
+          {word:"final exam", phonetic:"/ˈfaɪnl ɪɡˈzæm/", meaning:"期末考试"}
+        ],
+        sentences: [
+          {en:"I need to buy a new notebook.", cn:"我需要买一个新笔记本。"},
+          {en:"The assignment is due tomorrow.", cn:"作业明天截止。"},
+          {en:"Don't miss the deadline.", cn:"别错过截止日期。"},
+          {en:"We have a quiz every Friday.", cn:"我们每周五有小测验。"},
+          {en:"The midterm covers chapters 1 to 5.", cn:"期中考试涵盖第1到5章。"},
+          {en:"I'm studying for the final exam.", cn:"我在为期末考试复习。"},
+          {en:"Use a highlighter to mark key points.", cn:"用荧光笔标出重点。"}
+        ]
+      },
+      {
+        title: "Unit 5 Performance & Graduation 成绩评量与毕业",
+        subtopics: ["成绩、违规与惩处", "毕业与荣誉", "庆祝、活动与毕业后"],
+        words: [
+          {word:"GPA", phonetic:"/ˌdʒiː piː ˈeɪ/", meaning:"绩点"},
+          {word:"credit", phonetic:"/ˈkredɪt/", meaning:"学分"},
+          {word:"probation", phonetic:"/proʊˈbeɪʃn/", meaning:"留校察看"},
+          {word:"graduation", phonetic:"/ˌɡrædʒuˈeɪʃn/", meaning:"毕业"},
+          {word:"diploma", phonetic:"/dɪˈploʊmə/", meaning:"文凭"},
+          {word:"valedictorian", phonetic:"/ˌvælɪdɪkˈtɔːriən/", meaning:"毕业生代表"},
+          {word:"alumni", phonetic:"/əˈlʌmnaɪ/", meaning:"校友"}
+        ],
+        sentences: [
+          {en:"My GPA is 3.8.", cn:"我的绩点是3.8。"},
+          {en:"I need 120 credits to graduate.", cn:"我需要120个学分才能毕业。"},
+          {en:"He's on academic probation.", cn:"他被留校察看了。"},
+          {en:"Graduation is in June.", cn:"毕业典礼在六月。"},
+          {en:"She was the valedictorian of her class.", cn:"她是班上的毕业生代表。"},
+          {en:"He received his diploma with honors.", cn:"他获得了荣誉文凭。"},
+          {en:"The alumni reunion is next month.", cn:"校友聚会在下个月。"}
+        ]
+      }
+    ]
+  },
+  {
+    chapter: "Chapter 9", title: "In the Workplace 职场生活",
+    units: [
+      {
+        title: "Unit 1 Job Application 求职",
+        subtopics: ["履历表", "相关文件", "公司及职位资讯"],
+        words: [
+          {word:"resume", phonetic:"/ˈrezəmeɪ/", meaning:"简历"},
+          {word:"cover letter", phonetic:"/ˈkʌvər ˈletər/", meaning:"求职信"},
+          {word:"qualification", phonetic:"/ˌkwɑːlɪfɪˈkeɪʃn/", meaning:"资格"},
+          {word:"experience", phonetic:"/ɪkˈspɪriəns/", meaning:"经验"},
+          {word:"position", phonetic:"/pəˈzɪʃn/", meaning:"职位"},
+          {word:"opening", phonetic:"/ˈoʊpənɪŋ/", meaning:"空缺"},
+          {word:"salary", phonetic:"/ˈsæləri/", meaning:"薪资"},
+          {word:"benefits", phonetic:"/ˈbenɪfɪts/", meaning:"福利"}
+        ],
+        sentences: [
+          {en:"I need to update my resume.", cn:"我需要更新我的简历。"},
+          {en:"Write a cover letter for the application.", cn:"为申请写一封求职信。"},
+          {en:"What are the qualifications for this position?", cn:"这个职位的资格要求是什么？"},
+          {en:"I have three years of experience.", cn:"我有三年的经验。"},
+          {en:"Is there an opening in your department?", cn:"你们部门有空缺吗？"},
+          {en:"What's the salary range for this position?", cn:"这个职位的薪资范围是多少？"},
+          {en:"The benefits include health insurance.", cn:"福利包括健康保险。"}
+        ]
+      },
+      {
+        title: "Unit 2 Interviews 面试",
+        subtopics: ["面试准备与面试中", "工作经验与能力", "个人特质"],
+        words: [
+          {word:"interview", phonetic:"/ˈɪntərvjuː/", meaning:"面试"},
+          {word:"interviewer", phonetic:"/ˈɪntərvjuːər/", meaning:"面试官"},
+          {word:"candidate", phonetic:"/ˈkændɪdət/", meaning:"候选人"},
+          {word:"strength", phonetic:"/streŋθ/", meaning:"优势"},
+          {word:"weakness", phonetic:"/ˈwiːknəs/", meaning:"弱点"},
+          {word:"team player", phonetic:"/tiːm ˈpleɪər/", meaning:"团队合作者"},
+          {word:"leadership", phonetic:"/ˈliːdərʃɪp/", meaning:"领导力"}
+        ],
+        sentences: [
+          {en:"I have a job interview tomorrow.", cn:"我明天有一个面试。"},
+          {en:"The interviewer asked about my experience.", cn:"面试官问了我的经验。"},
+          {en:"She is a strong candidate for the position.", cn:"她是这个职位的有力候选人。"},
+          {en:"What are your strengths and weaknesses?", cn:"你的优势和弱点是什么？"},
+          {en:"I'm a team player.", cn:"我是一个善于团队合作的人。"},
+          {en:"He demonstrated strong leadership skills.", cn:"他展现了出色的领导力。"},
+          {en:"Tell me about yourself.", cn:"请做一下自我介绍。"}
+        ]
+      },
+      {
+        title: "Unit 3 Occupations 职业类别",
+        subtopics: ["商业、法务与医药专业", "公职、媒体与艺术工作者", "服务业与其他专业"],
+        words: [
+          {word:"accountant", phonetic:"/əˈkaʊntənt/", meaning:"会计师"},
+          {word:"lawyer", phonetic:"/ˈlɔːjər/", meaning:"律师"},
+          {word:"surgeon", phonetic:"/ˈsɜːrdʒən/", meaning:"外科医生"},
+          {word:"journalist", phonetic:"/ˈdʒɜːrnəlɪst/", meaning:"记者"},
+          {word:"architect", phonetic:"/ˈɑːrkɪtekt/", meaning:"建筑师"},
+          {word:"chef", phonetic:"/ʃef/", meaning:"厨师"},
+          {word:"mechanic", phonetic:"/məˈkænɪk/", meaning:"机械师"},
+          {word:"plumber", phonetic:"/ˈplʌmər/", meaning:"水管工"}
+        ],
+        sentences: [
+          {en:"My sister is an accountant.", cn:"我姐姐是会计师。"},
+          {en:"You should consult a lawyer.", cn:"你应该咨询律师。"},
+          {en:"The surgeon performed a successful operation.", cn:"外科医生做了一台成功的手术。"},
+          {en:"She works as a journalist for a newspaper.", cn:"她在一家报社当记者。"},
+          {en:"The architect designed the building.", cn:"建筑师设计了这栋建筑。"},
+          {en:"The chef prepared a delicious meal.", cn:"厨师做了一顿美味的饭菜。"},
+          {en:"We need to call a plumber.", cn:"我们需要叫一个水管工。"}
+        ]
+      },
+      {
+        title: "Unit 4 In the Office 办公室环境",
+        subtopics: ["组织与职称", "办公设备、电话与邮件", "办公室闲聊"],
+        words: [
+          {word:"colleague", phonetic:"/ˈkɑːliːɡ/", meaning:"同事"},
+          {word:"supervisor", phonetic:"/ˈsuːpərvaɪzər/", meaning:"主管"},
+          {word:"department", phonetic:"/dɪˈpɑːrtmənt/", meaning:"部门"},
+          {word:"printer", phonetic:"/ˈprɪntər/", meaning:"打印机"},
+          {word:"scanner", phonetic:"/ˈskænər/", meaning:"扫描仪"},
+          {word:"spreadsheet", phonetic:"/ˈspredʃiːt/", meaning:"电子表格"},
+          {word:"conference room", phonetic:"/ˈkɑːnfərəns ruːm/", meaning:"会议室"},
+          {word:"watercooler", phonetic:"/ˈwɔːtərkuːlər/", meaning:"饮水机"}
+        ],
+        sentences: [
+          {en:"My colleague helped me with the project.", cn:"我的同事帮我做了这个项目。"},
+          {en:"I need to talk to my supervisor.", cn:"我需要和我的主管谈谈。"},
+          {en:"Which department do you work in?", cn:"你在哪个部门工作？"},
+          {en:"The printer is out of paper.", cn:"打印机没纸了。"},
+          {en:"I'll send you the spreadsheet by email.", cn:"我会通过邮件把电子表格发给你。"},
+          {en:"The meeting is in the conference room.", cn:"会议在会议室举行。"},
+          {en:"Let's chat by the watercooler.", cn:"我们去饮水机旁边聊聊吧。"}
+        ]
+      },
+      {
+        title: "Unit 5 Human Resources 人力资源",
+        subtopics: ["公司福利", "休假与加班", "人事变动"],
+        words: [
+          {word:"paid leave", phonetic:"/peɪd liːv/", meaning:"带薪假"},
+          {word:"sick leave", phonetic:"/sɪk liːv/", meaning:"病假"},
+          {word:"overtime", phonetic:"/ˈoʊvərtaɪm/", meaning:"加班"},
+          {word:"promotion", phonetic:"/prəˈmoʊʃn/", meaning:"升职"},
+          {word:"resign", phonetic:"/rɪˈzaɪn/", meaning:"辞职"},
+          {word:"layoff", phonetic:"/ˈleɪɔːf/", meaning:"裁员"},
+          {word:"retire", phonetic:"/rɪˈtaɪər/", meaning:"退休"},
+          {word:"bonus", phonetic:"/ˈboʊnəs/", meaning:"奖金"}
+        ],
+        sentences: [
+          {en:"I'm taking paid leave next week.", cn:"我下周休带薪假。"},
+          {en:"She called in sick leave today.", cn:"她今天请了病假。"},
+          {en:"I worked overtime last night.", cn:"我昨晚加班了。"},
+          {en:"He got a promotion to manager.", cn:"他被提升为经理了。"},
+          {en:"I decided to resign from my job.", cn:"我决定辞职。"},
+          {en:"The company announced layoffs.", cn:"公司宣布了裁员。"},
+          {en:"My father retired at 65.", cn:"我父亲65岁退休了。"},
+          {en:"We got a year-end bonus.", cn:"我们拿到了年终奖。"}
+        ]
+      }
+    ]
+  }
+];
+
+// ======================== STATE ========================
+let currentChapter = null;
+let currentUnit = null;
+let currentMode = 'word'; // 'word' | 'sentence' | 'dictation'
+let practiceItems = [];
+let currentIndex = 0;
+let practiceStartTime = null;
+let totalKeystrokes = 0;
+let correctKeystrokes = 0;
+let incorrectChars = 0;
+let masteredWords = JSON.parse(localStorage.getItem('masteredWords') || '[]');
+let unitProgress = JSON.parse(localStorage.getItem('unitProgress') || '{}');
+let currentErrors = 0;
+let dictationRevealed = false;
+let dictationSubmitted = false;
+let voicesLoaded = false;
+
+// ======================== INIT ========================
+function init() {
+  renderSidebar();
+  renderWelcome();
+  updateGlobalStats();
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+}
+
+function renderSidebar() {
+  const nav = document.getElementById('sidebar-nav');
+  nav.innerHTML = '';
+  bookData.forEach((chapter, ci) => {
+    const chapterDiv = document.createElement('div');
+    chapterDiv.className = 'chapter-item';
+    
+    const completedUnits = chapter.units.filter(u => 
+      unitProgress[`${ci}-${chapter.units.indexOf(u)}`] === 'done'
+    ).length;
+    
+    chapterDiv.innerHTML = `
+      <div class="chapter-header" onclick="toggleChapter(${ci})">
+        <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 18l6-6-6-6"/>
+        </svg>
+        <span>${chapter.chapter}: ${chapter.title.split(' ').slice(1).join(' ')}</span>
+        <span class="chapter-progress">${completedUnits}/${chapter.units.length}</span>
+      </div>
+      <div class="unit-list">
+        ${chapter.units.map((unit, ui) => {
+          const key = `${ci}-${ui}`;
+          const isDone = unitProgress[key] === 'done';
+          return `<div class="unit-item ${isDone ? 'completed' : ''}" onclick="selectUnit(${ci}, ${ui})">
+            <div class="unit-check"></div>
+            <span>${unit.title}</span>
+          </div>`;
+        }).join('')}
+      </div>
+    `;
+    nav.appendChild(chapterDiv);
+  });
+}
+
+function toggleChapter(ci) {
+  const chapters = document.querySelectorAll('.chapter-item');
+  chapters[ci].classList.toggle('expanded');
+}
+
+function selectUnit(ci, ui) {
+  currentChapter = ci;
+  currentUnit = ui;
+  const chapter = bookData[ci];
+  const unit = chapter.units[ui];
+  
+  document.querySelectorAll('.unit-item').forEach(el => el.classList.remove('active'));
+  
+  const chapterDiv = document.querySelectorAll('.chapter-item')[ci];
+  chapterDiv.classList.add('expanded');
+  const unitItems = chapterDiv.querySelectorAll('.unit-item');
+  unitItems[ui].classList.add('active');
+  
+  const breadcrumb = document.getElementById('breadcrumb');
+  breadcrumb.innerHTML = `${chapter.chapter} > <span>${unit.title}</span>`;
+
+  closeSidebar();
+  startPractice();
+}
+
+// ======================== SPEECH SYNTHESIS ========================
+const synth = window.speechSynthesis;
+
+function loadVoices() {
+  voicesLoaded = true;
+}
+
+if (synth) {
+  synth.onvoiceschanged = loadVoices;
+  loadVoices();
+}
+
+function speakText(text, rate) {
+  if (!synth) return;
+  synth.cancel();
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = 'en-US';
+  utterance.rate = rate || 0.9;
+  const voices = synth.getVoices();
+  const usVoice = voices.find(v => v.lang === 'en-US' && /samantha|google us|david|zira/i.test(v.name))
+    || voices.find(v => v.lang === 'en-US')
+    || voices.find(v => v.lang.startsWith('en'));
+  if (usVoice) utterance.voice = usVoice;
+  synth.speak(utterance);
+}
+
+// ======================== PRACTICE ========================
+function startPractice() {
+  const unit = bookData[currentChapter].units[currentUnit];
+
+  if (currentMode === 'word') {
+    practiceItems = unit.words.map(w => ({
+      display: w.word,
+      phonetic: w.phonetic,
+      translation: w.meaning,
+      type: 'word'
+    }));
+  } else if (currentMode === 'sentence') {
+    practiceItems = unit.sentences.map(s => ({
+      display: s.en,
+      translation: s.cn,
+      type: 'sentence'
+    }));
+  } else if (currentMode === 'dictation') {
+    practiceItems = [
+      ...unit.words.map(w => ({
+        display: w.word,
+        phonetic: w.phonetic,
+        translation: w.meaning,
+        type: 'word'
+      })),
+      ...unit.sentences.map(s => ({
+        display: s.en,
+        translation: s.cn,
+        type: 'sentence'
+      }))
+    ];
+  }
+
+  currentIndex = 0;
+  practiceStartTime = null;
+  totalKeystrokes = 0;
+  correctKeystrokes = 0;
+  incorrectChars = 0;
+  currentErrors = 0;
+  dictationRevealed = false;
+  dictationSubmitted = false;
+
+  renderPractice();
+}
+
+function renderPractice() {
+  const area = document.getElementById('practice-area');
+  
+  if (practiceItems.length === 0) {
+    area.innerHTML = `<div class="empty-state"><h3>暂无练习内容</h3><p>请选择其他单元</p></div>`;
+    return;
+  }
+  
+  if (currentIndex >= practiceItems.length) {
+    renderResults();
+    return;
+  }
+  
+  const item = practiceItems[currentIndex];
+  const progress = ((currentIndex / practiceItems.length) * 100).toFixed(0);
+  
+  let chipsHtml = practiceItems.map((_, i) => {
+    let cls = '';
+    if (i < currentIndex) cls = 'done';
+    else if (i === currentIndex) cls = 'active';
+    return `<div class="word-chip ${cls}">${i + 1}</div>`;
+  }).join('');
+  
+  area.innerHTML = `
+    <div class="practice-container">
+      <div class="progress-bar-container">
+        <div class="progress-bar-fill" style="width: ${progress}%"></div>
+      </div>
+      <div class="word-list-overlay">${chipsHtml}</div>
+      ${currentMode === 'dictation' ? `
+        <div class="dictation-prompt">
+          <span class="listening-icon">\ud83c\udfa7</span>
+          \u542c\u97f3\u9010\u5b57\u6253\u51fa\u4f60\u542c\u5230\u7684\u5185\u5bb9
+        </div>
+        <div class="dictation-hidden ${item.type === 'sentence' ? 'dictation-sentence' : ''}" id="dictation-display"></div>
+        <div class="word-info" id="dictation-info" style="display:none">
+          <div class="phonetic">${item.phonetic || ''}</div>
+          <div class="translation">${item.translation || ''}</div>
+        </div>
+        <div class="audio-controls">
+          <button class="btn-audio" id="btn-play" onclick="playCurrentAudio()">
+            \ud83d\udd0a \u64ad\u653e\u53d1\u97f3
+          </button>
+          <button class="btn-reveal" id="btn-reveal" onclick="revealDictation()">
+            \u663e\u793a\u7b54\u6848 (Esc)
+          </button>
+        </div>
+        <div class="dictation-hint">\u70b9\u51fb\u201c\u64ad\u653e\u53d1\u97f3\u201d\u542c\u53d6\uff0c\u8f93\u5165\u540e\u81ea\u52a8\u7ea0\u9519\uff1bEsc \u53ef\u67e5\u770b\u7b54\u6848</div>
+      ` : currentMode === 'word' ? `
+        <div class="word-display" id="word-display"></div>
+        <div class="word-info">
+          <div class="phonetic">${item.phonetic || ''}</div>
+          <div class="translation">${item.translation || ''}</div>
+        </div>
+      ` : `
+        <div class="sentence-display">
+          <div class="sentence-english" id="word-display"></div>
+          <div class="sentence-chinese">${item.translation || ''}</div>
+        </div>
+      `}
+      <div class="input-area">
+        <input type="text" class="typing-input" id="typing-input"
+               placeholder="\u5728\u6b64\u8f93\u5165..." autocomplete="off" autofocus>
+      </div>
+      <div class="stats-row">
+        <div class="stat-box"><div class="value" id="stat-wpm">0</div><div class="label">WPM</div></div>
+        <div class="stat-box"><div class="value" id="stat-acc">100%</div><div class="label">\u6b63\u786e\u7387</div></div>
+        <div class="stat-box"><div class="value" id="stat-progress">${currentIndex + 1}/${practiceItems.length}</div><div class="label">\u8fdb\u5ea6</div></div>
+      </div>
+      <div class="action-row">
+        <button class="btn" onclick="skipItem()">\u8df3\u8fc7 (Tab)</button>
+        <button class="btn" onclick="restartUnit()">\u91cd\u65b0\u5f00\u59cb</button>
+      </div>
+    </div>
+  `;
+
+  if (currentMode === 'dictation') {
+    dictationRevealed = false;
+    dictationSubmitted = false;
+    renderDictationDisplay('');
+    setTimeout(() => playCurrentAudio(), 300);
+  } else {
+    renderWordDisplay('');
+  }
+  const input = document.getElementById('typing-input');
+  input.focus();
+
+  input.addEventListener('input', handleInput);
+  input.addEventListener('keydown', handleKeyDown);
+}
+
+function renderWordDisplay(typed) {
+  const display = document.getElementById('word-display');
+  if (!display) return;
+  
+  const target = practiceItems[currentIndex].display;
+  let html = '';
+  
+  for (let i = 0; i < target.length; i++) {
+    let cls = 'pending';
+    if (i < typed.length) {
+      if (typed[i] === target[i]) {
+        cls = 'correct';
+      } else {
+        cls = 'incorrect';
+      }
+    } else if (i === typed.length) {
+      cls = 'current';
+    }
+    html += `<span class="char ${cls}">${target[i] === ' ' ? '&nbsp;' : target[i]}</span>`;
+  }
+  
+  if (typed.length > target.length) {
+    for (let i = target.length; i < typed.length; i++) {
+      html += `<span class="char incorrect">${typed[i]}</span>`;
+    }
+  }
+  
+  display.innerHTML = html;
+}
+
+function renderDictationDisplay(typed) {
+  const display = document.getElementById('dictation-display');
+  if (!display) return;
+
+  const target = practiceItems[currentIndex].display;
+
+  if (!dictationRevealed && typed.length === 0) {
+    display.innerHTML = '<span style="color:var(--text-faint);letter-spacing:8px">\u2731\u2731\u2731</span>';
+    return;
+  }
+
+  let html = '';
+  if (dictationRevealed) {
+    for (let i = 0; i < target.length; i++) {
+      let cls = 'pending';
+      if (i < typed.length) {
+        cls = typed[i] === target[i] ? 'correct' : 'incorrect';
+      } else if (i === typed.length) {
+        cls = 'current';
+      }
+      html += `<span class="char ${cls}">${target[i] === ' ' ? '&nbsp;' : target[i]}</span>`;
+    }
+  } else {
+    for (let i = 0; i < typed.length; i++) {
+      let cls = typed[i] === target[i] ? 'correct' : 'incorrect';
+      let ch = i < target.length ? (target[i] === ' ' ? '&nbsp;' : target[i]) : typed[i];
+      if (typed[i] !== target[i] && i < target.length) {
+        html += `<span class="char incorrect">${typed[i] === ' ' ? '&nbsp;' : typed[i]}</span>`;
+      } else {
+        html += `<span class="char ${cls}">${ch}</span>`;
+      }
+    }
+    if (typed.length < target.length) {
+      html += `<span class="char current">&nbsp;</span>`;
+    }
+  }
+  display.innerHTML = html;
+}
+
+function playCurrentAudio() {
+  const text = practiceItems[currentIndex].display;
+  const isSentence = practiceItems[currentIndex].type === 'sentence';
+  speakText(text, isSentence ? 0.85 : 0.75);
+  const btn = document.getElementById('btn-play');
+  if (btn) {
+    btn.classList.add('playing');
+    setTimeout(() => btn && btn.classList.remove('playing'), 2000);
+  }
+}
+
+function revealDictation() {
+  dictationRevealed = true;
+  const display = document.getElementById('dictation-display');
+  if (display) display.classList.add('revealed');
+  const info = document.getElementById('dictation-info');
+  if (info) info.style.display = 'block';
+
+  const target = practiceItems[currentIndex].display;
+  const input = document.getElementById('typing-input');
+  if (input) {
+    input.value = target;
+    input.classList.add('incorrect');
+  }
+  renderDictationDisplay(target);
+
+  const btn = document.getElementById('btn-reveal');
+  if (btn) {
+    btn.textContent = '\u2705 \u5df2\u663e\u793a\uff0c\u70b9\u51fb\u4e0b\u4e00\u4e2a';
+    btn.disabled = false;
+    btn.onclick = skipItem;
+  }
+
+  if (!dictationSubmitted) {
+    currentErrors++;
+    dictationSubmitted = true;
+  }
+}
+
+function handleInput(e) {
+  if (!practiceStartTime) practiceStartTime = Date.now();
+
+  const input = e.target;
+  const typed = input.value;
+  const target = practiceItems[currentIndex].display;
+
+  if (currentMode === 'dictation') {
+    renderDictationDisplay(typed);
+  } else {
+    renderWordDisplay(typed);
+  }
+
+  totalKeystrokes++;
+  if (typed.length > 0 && typed[typed.length - 1] === target[typed.length - 1]) {
+    correctKeystrokes++;
+  } else {
+    incorrectChars++;
+    currentErrors++;
+  }
+  
+  updateStats();
+  
+  if (typed === target) {
+    handleCorrect();
+  } else {
+    if (typed.length > 0 && typed[typed.length - 1] !== target[typed.length - 1]) {
+      input.classList.add('incorrect');
+    } else {
+      input.classList.remove('incorrect');
+    }
+  }
+}
+
+function handleKeyDown(e) {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    skipItem();
+  }
+  if (e.key === 'Escape' && currentMode === 'dictation') {
+    e.preventDefault();
+    revealDictation();
+  }
+}
+
+function handleCorrect() {
+  const item = practiceItems[currentIndex];
+  const word = item.display;
+
+  if ((currentMode === 'word' || currentMode === 'dictation') && currentErrors === 0) {
+    if (!masteredWords.includes(word)) {
+      masteredWords.push(word);
+      localStorage.setItem('masteredWords', JSON.stringify(masteredWords));
+    }
+  }
+
+  currentIndex++;
+  currentErrors = 0;
+  dictationRevealed = false;
+  dictationSubmitted = false;
+  if (synth) synth.cancel();
+  updateGlobalStats();
+
+  setTimeout(() => {
+    renderPractice();
+  }, 200);
+}
+
+function skipItem() {
+  currentIndex++;
+  currentErrors = 0;
+  dictationRevealed = false;
+  dictationSubmitted = false;
+  if (synth) synth.cancel();
+  renderPractice();
+}
+
+function restartUnit() {
+  currentIndex = 0;
+  practiceStartTime = null;
+  totalKeystrokes = 0;
+  correctKeystrokes = 0;
+  incorrectChars = 0;
+  currentErrors = 0;
+  dictationRevealed = false;
+  dictationSubmitted = false;
+  if (synth) synth.cancel();
+  renderPractice();
+}
+
+function updateStats() {
+  const elapsed = practiceStartTime ? (Date.now() - practiceStartTime) / 1000 / 60 : 0;
+  const wpm = elapsed > 0 ? Math.round((correctKeystrokes / 5) / elapsed) : 0;
+  const accuracy = totalKeystrokes > 0 ? Math.round((correctKeystrokes / totalKeystrokes) * 100) : 100;
+  
+  const wpmEl = document.getElementById('stat-wpm');
+  const accEl = document.getElementById('stat-acc');
+  if (wpmEl) wpmEl.textContent = wpm;
+  if (accEl) accEl.textContent = accuracy + '%';
+}
+
+function renderResults() {
+  const elapsed = practiceStartTime ? (Date.now() - practiceStartTime) / 1000 / 60 : 0;
+  const wpm = elapsed > 0 ? Math.round((correctKeystrokes / 5) / elapsed) : 0;
+  const accuracy = totalKeystrokes > 0 ? Math.round((correctKeystrokes / totalKeystrokes) * 100) : 100;
+  
+  const key = `${currentChapter}-${currentUnit}`;
+  if (accuracy >= 80) {
+    unitProgress[key] = 'done';
+    localStorage.setItem('unitProgress', JSON.stringify(unitProgress));
+    renderSidebar();
+    const chapter = bookData[currentChapter];
+    const unitItems = document.querySelectorAll('.chapter-item')[currentChapter].querySelectorAll('.unit-item');
+    if (unitItems[currentUnit]) {
+      unitItems[currentUnit].classList.add('completed');
+    }
+  }
+  
+  const area = document.getElementById('practice-area');
+  area.innerHTML = `
+    <div class="result-screen">
+      <h2>练习完成！</h2>
+      <div class="result-stats">
+        <div class="result-stat">
+          <div class="value" style="color: var(--accent-hover)">${wpm}</div>
+          <div class="label">WPM (每分钟字数)</div>
+        </div>
+        <div class="result-stat">
+          <div class="value" style="color: ${accuracy >= 80 ? 'var(--success)' : 'var(--warning)'}">${accuracy}%</div>
+          <div class="label">正确率</div>
+        </div>
+        <div class="result-stat">
+          <div class="value" style="color: var(--text)">${practiceItems.length}</div>
+          <div class="label">练习数量</div>
+        </div>
+        <div class="result-stat">
+          <div class="value" style="color: var(--text)">${Math.round(elapsed * 60)}s</div>
+          <div class="label">用时</div>
+        </div>
+      </div>
+      <div class="action-row">
+        <button class="btn btn-primary" onclick="restartUnit()">再练一次</button>
+        <button class="btn" onclick="switchMode()">${currentMode === 'word' ? '练句子' : currentMode === 'sentence' ? '听写练习' : '练单词'}</button>
+      </div>
+    </div>
+  `;
+
+  updateGlobalStats();
+}
+
+function switchMode() {
+  const modes = ['word', 'sentence', 'dictation'];
+  const idx = modes.indexOf(currentMode);
+  currentMode = modes[(idx + 1) % modes.length];
+  updateModeTabs();
+  if (currentChapter !== null) {
+    startPractice();
+  }
+}
+
+function updateModeTabs() {
+  document.querySelectorAll('.mode-tab').forEach(tab => {
+    tab.classList.toggle('active', tab.dataset.mode === currentMode);
+  });
+}
+
+function updateGlobalStats() {
+  const totalWords = bookData.reduce((sum, ch) => sum + ch.units.reduce((s, u) => s + u.words.length, 0), 0);
+  const totalSentences = bookData.reduce((sum, ch) => sum + ch.units.reduce((s, u) => s + u.sentences.length, 0), 0);
+  const totalItems = totalWords + totalSentences;
+  
+  document.getElementById('stat-practiced').textContent = Object.keys(unitProgress).length;
+  document.getElementById('stat-mastered').textContent = masteredWords.length;
+  
+  if (totalKeystrokes > 0) {
+    const acc = Math.round((correctKeystrokes / totalKeystrokes) * 100);
+    document.getElementById('stat-accuracy').textContent = acc + '%';
+  }
+}
+
+function renderWelcome() {
+  const area = document.getElementById('practice-area');
+  const totalWords = bookData.reduce((sum, ch) => sum + ch.units.reduce((s, u) => s + u.words.length, 0), 0);
+  const totalSentences = bookData.reduce((sum, ch) => sum + ch.units.reduce((s, u) => s + u.sentences.length, 0), 0);
+  
+  area.innerHTML = `
+    <div class="welcome-screen">
+      <h2>美国人每天说的话</h2>
+      <p>基于赖世雄、吴纪维合著的《美国人每天说的话》，通过打字练习强化英语单词和句子的记忆。<br>
+      共 <strong style="color:var(--accent-hover)">${bookData.length}</strong> 章、<strong style="color:var(--accent-hover)">${bookData.reduce((s,c)=>s+c.units.length,0)}</strong> 个单元、<strong style="color:var(--accent-hover)">${totalWords}</strong> 个单词、<strong style="color:var(--accent-hover)">${totalSentences}</strong> 个例句。</p>
+      <div class="welcome-features">
+        <div class="feature-card">
+          <div class="icon">\u2328\ufe0f</div>
+          <h3>打字练习</h3>
+          <p>逐字符比对输入，绿色正确红色错误，强化肌肉记忆</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">\ud83c\udfa7</div>
+          <h3>听写模式</h3>
+          <p>先播放标准美式发音，听音打字，输入后自动纠错</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">\ud83d\udcc4</div>
+          <h3>三种模式</h3>
+          <p>单词模式练拼写，句子模式练语感，听写模式练听力</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">\ud83d\udcca</div>
+          <h3>实时统计</h3>
+          <p>WPM、正确率、进度实时显示，完成后查看总结</p>
+        </div>
+      </div>
+      <button class="btn-start" onclick="selectUnit(0, 0)">开始练习</button>
+    </div>
+  `;
+}
+
+// Mode tabs
+document.getElementById('mode-tabs').addEventListener('click', (e) => {
+  const tab = e.target.closest('.mode-tab');
+  if (!tab) return;
+  const mode = tab.dataset.mode;
+  if (mode === currentMode) return;
+  currentMode = mode;
+  updateModeTabs();
+  if (currentChapter !== null) {
+    startPractice();
+  }
+});
+
+// Start
+init();
+</script>
+</body>
+</html>
