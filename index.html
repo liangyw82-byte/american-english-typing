@@ -581,6 +581,18 @@ body {
   text-align: center;
   margin-bottom: 16px;
 }
+.dictation-result-timer {
+  font-size: 13px;
+  color: var(--text-faint);
+  text-align: center;
+  margin-top: 8px;
+}
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+}
+.btn-primary:hover { background: var(--accent-hover); }
 
 /* Mobile menu button */
 .mobile-menu-btn {
@@ -2272,6 +2284,8 @@ let currentErrors = 0;
 let currentItemHadError = false;
 let dictationRevealed = false;
 let dictationSubmitted = false;
+let isTransitioning = false;
+let dictationAutoAdvanceTimer = null;
 let voicesLoaded = false;
 
 // ======================== INIT ========================
@@ -2405,6 +2419,10 @@ async function startPractice(startIndex) {
       type: w.type,
       correctCount: w.correctCount || 0
     }));
+    for (let i = practiceItems.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [practiceItems[i], practiceItems[j]] = [practiceItems[j], practiceItems[i]];
+    }
     document.getElementById('breadcrumb').innerHTML = `错题集 (<span>${wrongItemsList.length}</span>题)`;
   } else {
     isWrongMode = false;
@@ -2436,6 +2454,7 @@ async function startPractice(startIndex) {
   currentItemHadError = false;
   dictationRevealed = false;
   dictationSubmitted = false;
+  isTransitioning = false;
 
   renderPractice();
 }
@@ -2476,7 +2495,7 @@ function renderPractice() {
       </div>
       <div class="word-list-overlay">${chipsHtml}</div>
       ${wrongInfoHtml}
-      ${currentMode === 'dictation' ? `
+      ${currentMode === 'dictation' || isWrongMode ? `
         <div class="dictation-prompt">
           <span class="listening-icon">\ud83c\udfa7</span>
           \u542c\u97f3\u9010\u5b57\u6253\u51fa\u4f60\u542c\u5230\u7684\u5185\u5bb9
@@ -2495,7 +2514,7 @@ function renderPractice() {
           </button>
         </div>
         <div class="dictation-hint">\u70b9\u51fb\u201c\u64ad\u653e\u53d1\u97f3\u201d\u542c\u53d6\uff0c\u8f93\u5165\u540e\u81ea\u52a8\u7ea0\u9519\uff1bEsc \u53ef\u67e5\u770b\u7b54\u6848</div>
-      ` : (isWrongMode && item.type === 'word') || (currentMode === 'word' && !isWrongMode) ? `
+      ` : currentMode === 'word' ? `
         <div class="word-display" id="word-display"></div>
         <div class="word-info">
           <div class="phonetic">${item.phonetic || ''}</div>
@@ -2523,7 +2542,7 @@ function renderPractice() {
     </div>
   `;
 
-  if (currentMode === 'dictation') {
+  if (currentMode === 'dictation' || isWrongMode) {
     dictationRevealed = false;
     dictationSubmitted = false;
     renderDictationDisplay('');
@@ -2648,25 +2667,28 @@ function revealDictation() {
 }
 
 function handleInput(e) {
+  if (isTransitioning) return;
   if (!practiceStartTime) practiceStartTime = Date.now();
 
   const input = e.target;
   const typed = input.value;
   const target = practiceItems[currentIndex].display;
 
-  if (currentMode === 'dictation') {
+  if (currentMode === 'dictation' || isWrongMode) {
     renderDictationDisplay(typed);
   } else {
     renderWordDisplay(typed);
   }
 
-  totalKeystrokes++;
-  if (typed.length > 0 && typed[typed.length - 1] === target[typed.length - 1]) {
-    correctKeystrokes++;
-  } else {
-    incorrectChars++;
-    currentErrors++;
-    currentItemHadError = true;
+  if (typed.length > 0 && typed.length <= target.length) {
+    totalKeystrokes++;
+    if (typed[typed.length - 1] === target[typed.length - 1]) {
+      correctKeystrokes++;
+    } else {
+      incorrectChars++;
+      currentErrors++;
+      currentItemHadError = true;
+    }
   }
   
   updateStats();
@@ -2674,7 +2696,7 @@ function handleInput(e) {
   if (typed === target) {
     handleCorrect();
   } else {
-    if (typed.length > 0 && typed[typed.length - 1] !== target[typed.length - 1]) {
+    if (typed.length > 0 && typed.length <= target.length && typed[typed.length - 1] !== target[typed.length - 1]) {
       input.classList.add('incorrect');
     } else {
       input.classList.remove('incorrect');
@@ -2687,13 +2709,19 @@ function handleKeyDown(e) {
     e.preventDefault();
     skipItem();
   }
-  if (e.key === 'Escape' && currentMode === 'dictation') {
+  if (e.key === 'Escape' && (currentMode === 'dictation' || isWrongMode)) {
     e.preventDefault();
     revealDictation();
   }
 }
 
 async function handleCorrect() {
+  if (isTransitioning) return;
+  isTransitioning = true;
+
+  const input = document.getElementById('typing-input');
+  if (input) input.disabled = true;
+
   const item = practiceItems[currentIndex];
   const word = item.display;
 
@@ -2710,36 +2738,91 @@ async function handleCorrect() {
     }
   }
 
+  updateGlobalStats();
+  if (synth) synth.cancel();
+
+  if (currentMode === 'dictation' || isWrongMode) {
+    showDictationResult(item);
+  } else {
+    advanceToNext();
+  }
+}
+
+function showDictationResult(item) {
+  const display = document.getElementById('dictation-display');
+  const info = document.getElementById('dictation-info');
+  const area = document.getElementById('practice-area');
+
+  if (display) {
+    display.classList.add('revealed');
+    let html = '';
+    for (let i = 0; i < item.display.length; i++) {
+      html += `<span class="char correct">${item.display[i] === ' ' ? '&nbsp;' : item.display[i]}</span>`;
+    }
+    display.innerHTML = html;
+  }
+  if (info) info.style.display = 'block';
+
+  const hintEl = document.querySelector('.dictation-hint');
+  if (hintEl) hintEl.remove();
+  const audioControls = document.querySelector('.audio-controls');
+  if (audioControls) audioControls.remove();
+
+  const actionRow = area.querySelector('.action-row');
+  if (actionRow) {
+    actionRow.innerHTML = `<div class="dictation-result-timer">5秒后自动下一个</div><button class="btn btn-primary" onclick="advanceToNext()">\u7acb\u5373\u4e0b\u4e00\u4e2a</button>`;
+  }
+
+  if (synth) speakText(item.display, item.type === 'sentence' ? 0.85 : 0.75);
+
+  dictationAutoAdvanceTimer = setTimeout(() => {
+    advanceToNext();
+  }, 5000);
+}
+
+function advanceToNext() {
+  if (dictationAutoAdvanceTimer) {
+    clearTimeout(dictationAutoAdvanceTimer);
+    dictationAutoAdvanceTimer = null;
+  }
+
   currentIndex++;
   currentErrors = 0;
   currentItemHadError = false;
   dictationRevealed = false;
   dictationSubmitted = false;
-  if (synth) synth.cancel();
-  updateGlobalStats();
+  isTransitioning = false;
 
   if (!isWrongMode) saveProgress();
 
-  setTimeout(() => {
-    renderPractice();
-  }, 200);
+  renderPractice();
 }
 
 function skipItem() {
+  if (isTransitioning) return;
   if (!isWrongMode && currentItemHadError) {
     addWrongItem(practiceItems[currentIndex]);
+  }
+  if (dictationAutoAdvanceTimer) {
+    clearTimeout(dictationAutoAdvanceTimer);
+    dictationAutoAdvanceTimer = null;
   }
   currentIndex++;
   currentErrors = 0;
   currentItemHadError = false;
   dictationRevealed = false;
   dictationSubmitted = false;
+  isTransitioning = false;
   if (synth) synth.cancel();
   if (!isWrongMode) saveProgress();
   renderPractice();
 }
 
 function restartUnit() {
+  if (dictationAutoAdvanceTimer) {
+    clearTimeout(dictationAutoAdvanceTimer);
+    dictationAutoAdvanceTimer = null;
+  }
   currentIndex = 0;
   practiceStartTime = null;
   totalKeystrokes = 0;
@@ -2749,6 +2832,7 @@ function restartUnit() {
   currentItemHadError = false;
   dictationRevealed = false;
   dictationSubmitted = false;
+  isTransitioning = false;
   if (synth) synth.cancel();
   if (isWrongMode) {
     startPractice();
