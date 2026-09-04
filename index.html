@@ -2795,6 +2795,11 @@ function advanceToNext() {
 
   if (!isWrongMode) saveProgress();
 
+  if (isWrongMode && currentIndex >= practiceItems.length) {
+    startPractice();
+    return;
+  }
+
   renderPractice();
 }
 
