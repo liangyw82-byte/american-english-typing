@@ -714,9 +714,124 @@ body {
   }
   .progress-bar-container { margin-bottom: 20px; }
 }
+
+/* Login Screen */
+.login-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000;
+}
+.login-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 40px;
+  width: 100%; max-width: 400px;
+  box-shadow: var(--shadow);
+}
+.login-card h2 { font-size: 22px; margin-bottom: 8px; }
+.login-card .subtitle { font-size: 13px; color: var(--text-faint); margin-bottom: 24px; }
+.login-field { margin-bottom: 16px; }
+.login-field label { display: block; font-size: 13px; color: var(--text-dim); margin-bottom: 6px; }
+.login-field input {
+  width: 100%; padding: 12px 14px;
+  background: var(--bg-input);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  color: var(--text); font-size: 15px;
+  outline: none; transition: border-color 0.2s;
+}
+.login-field input:focus { border-color: var(--accent); }
+.login-error { color: var(--error); font-size: 13px; margin-bottom: 12px; display: none; }
+.btn-login {
+  width: 100%; padding: 14px;
+  background: var(--accent); color: #fff;
+  border: none; border-radius: 8px;
+  font-size: 15px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s;
+  margin-bottom: 12px;
+}
+.btn-login:hover { background: var(--accent-hover); }
+.login-switch { text-align: center; font-size: 13px; color: var(--text-dim); }
+.login-switch a { color: var(--accent-hover); cursor: pointer; text-decoration: none; }
+
+/* User info in sidebar */
+.user-info {
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+}
+.user-email { font-size: 12px; color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.btn-logout { font-size: 11px; color: var(--text-faint); background: none; border: 1px solid var(--border); padding: 4px 10px; border-radius: 6px; cursor: pointer; white-space: nowrap; }
+.btn-logout:hover { color: var(--error); border-color: var(--error); }
+
+/* 错题集 button */
+.btn-wrong-items {
+  margin: 8px 20px;
+  padding: 10px 16px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-dim);
+  font-size: 13px; cursor: pointer;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 8px; transition: all 0.15s;
+}
+.btn-wrong-items:hover { background: var(--bg-hover); color: var(--text); }
+.btn-wrong-items .badge {
+  background: var(--error); color: #fff;
+  font-size: 11px; padding: 2px 7px;
+  border-radius: 10px; font-weight: 600;
+}
+.btn-wrong-items .badge.empty { background: var(--border-light); }
+
+/* Resume button */
+.btn-resume {
+  display: block; margin: 0 auto 16px;
+  padding: 12px 32px;
+  background: var(--success); color: #fff;
+  border: none; border-radius: var(--radius);
+  font-size: 15px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s;
+}
+.btn-resume:hover { opacity: 0.9; transform: translateY(-1px); }
+
+/* Wrong item counter in practice */
+.correct-count-info {
+  font-size: 12px; color: var(--text-faint);
+  text-align: center; margin-bottom: 12px;
+}
+.correct-count-info span { color: var(--success); font-weight: 600; }
 </style>
 </head>
 <body>
+
+<!-- Login Screen -->
+<div class="login-overlay" id="login-overlay" style="display:none">
+  <div class="login-card">
+    <h2 id="login-title">登录</h2>
+    <p class="subtitle" id="login-subtitle">登录后您的学习进度将被保存</p>
+    <div class="login-error" id="login-error"></div>
+    <div class="login-field" id="field-name" style="display:none">
+      <label>昵称</label>
+      <input type="text" id="login-name" placeholder="请输入昵称">
+    </div>
+    <div class="login-field">
+      <label>邮箱</label>
+      <input type="email" id="login-email" placeholder="请输入邮箱" autocomplete="email">
+    </div>
+    <div class="login-field">
+      <label>密码</label>
+      <input type="password" id="login-password" placeholder="请输入密码" autocomplete="current-password">
+    </div>
+    <button class="btn-login" id="btn-login-action" onclick="handleLoginAction()">登录</button>
+    <div class="login-switch">
+      <span id="login-switch-text">没有账号？</span>
+      <a onclick="toggleLoginRegister()">注册</a>
+    </div>
+  </div>
+</div>
 
 <!-- Sidebar -->
 <div class="sidebar" id="sidebar">
@@ -724,11 +839,19 @@ body {
     <h1>美国人每天说的话</h1>
     <p>赖世雄 / 吴纪维 - 打字练习</p>
   </div>
+  <div class="user-info" id="user-info" style="display:none">
+    <span class="user-email" id="user-email-display"></span>
+    <button class="btn-logout" onclick="logout()">退出</button>
+  </div>
   <div class="sidebar-stats">
     <div class="stat-item">已练 <span id="stat-practiced">0</span></div>
     <div class="stat-item">已掌握 <span id="stat-mastered">0</span></div>
     <div class="stat-item">正确率 <span id="stat-accuracy">--</span></div>
   </div>
+  <button class="btn-wrong-items" onclick="openWrongItems()">
+    <span>错题集</span>
+    <span class="badge empty" id="wrong-badge">0</span>
+  </button>
   <div class="sidebar-nav" id="sidebar-nav"></div>
 </div>
 <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
@@ -744,6 +867,7 @@ body {
       <button class="mode-tab active" data-mode="word">单词模式</button>
       <button class="mode-tab" data-mode="sentence">句子模式</button>
       <button class="mode-tab" data-mode="dictation">听写模式</button>
+      <button class="mode-tab" data-mode="wrong">错题集</button>
     </div>
   </div>
   <div class="practice-area" id="practice-area"></div>
@@ -1890,19 +2014,262 @@ const bookData = [
   }
 ];
 
+// ======================== USER AUTH ========================
+let currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+let users = JSON.parse(localStorage.getItem('users') || '[]');
+let isRegisterMode = false;
+
+function showLoginScreen() {
+  document.getElementById('login-overlay').style.display = 'flex';
+  document.getElementById('login-email').focus();
+}
+
+function hideLoginScreen() {
+  document.getElementById('login-overlay').style.display = 'none';
+}
+
+function toggleLoginRegister() {
+  isRegisterMode = !isRegisterMode;
+  document.getElementById('field-name').style.display = isRegisterMode ? 'block' : 'none';
+  document.getElementById('login-title').textContent = isRegisterMode ? '注册' : '登录';
+  document.getElementById('login-subtitle').textContent = isRegisterMode ? '创建账号后即可保存学习进度' : '登录后您的学习进度将被保存';
+  document.getElementById('btn-login-action').textContent = isRegisterMode ? '注册' : '登录';
+  document.getElementById('login-switch-text').textContent = isRegisterMode ? '已有账号？' : '没有账号？';
+  document.querySelector('.login-switch a').textContent = isRegisterMode ? '登录' : '注册';
+  document.getElementById('login-error').style.display = 'none';
+}
+
+function handleLoginAction() {
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const name = document.getElementById('login-name').value.trim();
+  const errEl = document.getElementById('login-error');
+
+  if (!email || !password) {
+    errEl.textContent = '请填写邮箱和密码';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  if (isRegisterMode) {
+    if (!name) {
+      errEl.textContent = '请填写昵称';
+      errEl.style.display = 'block';
+      return;
+    }
+    if (users.find(u => u.email === email)) {
+      errEl.textContent = '该邮箱已注册，请直接登录';
+      errEl.style.display = 'block';
+      return;
+    }
+    const user = { email, password, name, createdAt: Date.now() };
+    users.push(user);
+    localStorage.setItem('users', JSON.stringify(users));
+    currentUser = user;
+    localStorage.setItem('currentUser', JSON.stringify(user));
+    hideLoginScreen();
+    afterLogin();
+  } else {
+    const user = users.find(u => u.email === email && u.password === password);
+    if (!user) {
+      errEl.textContent = '邮箱或密码错误';
+      errEl.style.display = 'block';
+      return;
+    }
+    currentUser = user;
+    localStorage.setItem('currentUser', JSON.stringify(user));
+    hideLoginScreen();
+    afterLogin();
+  }
+}
+
+function logout() {
+  currentUser = null;
+  localStorage.removeItem('currentUser');
+  showLoginScreen();
+  document.getElementById('user-info').style.display = 'none';
+}
+
+function afterLogin() {
+  document.getElementById('user-info').style.display = 'flex';
+  document.getElementById('user-email-display').textContent = currentUser.email;
+  initDB().then(() => {
+    restoreProgress();
+    updateWrongBadge();
+  });
+}
+
+// ======================== INDEXEDB ========================
+let db = null;
+
+function initDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('typing_practice', 2);
+    request.onupgradeneeded = function(e) {
+      const database = e.target.result;
+      if (!database.objectStoreNames.contains('progress')) {
+        database.createObjectStore('progress', { keyPath: 'email' });
+      }
+      if (!database.objectStoreNames.contains('wrongItems')) {
+        const store = database.createObjectStore('wrongItems', { keyPath: 'id' });
+        store.createIndex('email', 'email', { unique: false });
+      }
+    };
+    request.onsuccess = function(e) {
+      db = e.target.result;
+      resolve(db);
+    };
+    request.onerror = function(e) {
+      console.error('IndexedDB error:', e);
+      resolve(null);
+    };
+  });
+}
+
+function dbPut(storeName, data) {
+  return new Promise((resolve) => {
+    if (!db) { resolve(); return; }
+    const tx = db.transaction(storeName, 'readwrite');
+    tx.objectStore(storeName).put(data);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => resolve();
+  });
+}
+
+function dbGet(storeName, key) {
+  return new Promise((resolve) => {
+    if (!db) { resolve(null); return; }
+    const tx = db.transaction(storeName, 'readonly');
+    const req = tx.objectStore(storeName).get(key);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => resolve(null);
+  });
+}
+
+function dbGetAll(storeName) {
+  return new Promise((resolve) => {
+    if (!db) { resolve([]); return; }
+    const tx = db.transaction(storeName, 'readonly');
+    const req = tx.objectStore(storeName).getAll();
+    req.onsuccess = () => resolve(req.result || []);
+    req.onerror = () => resolve([]);
+  });
+}
+
+function dbDelete(storeName, key) {
+  return new Promise((resolve) => {
+    if (!db) { resolve(); return; }
+    const tx = db.transaction(storeName, 'readwrite');
+    tx.objectStore(storeName).delete(key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => resolve();
+  });
+}
+
+async function saveProgress() {
+  if (!currentUser || !db) return;
+  await dbPut('progress', {
+    email: currentUser.email,
+    chapter: currentChapter,
+    unit: currentUnit,
+    mode: currentMode,
+    index: currentIndex,
+    savedAt: Date.now()
+  });
+}
+
+async function restoreProgress() {
+  if (!currentUser || !db) return;
+  const p = await dbGet('progress', currentUser.email);
+  if (p && p.chapter !== null && p.chapter !== undefined) {
+    currentMode = p.mode || 'word';
+    updateModeTabs();
+    currentChapter = p.chapter;
+    currentUnit = p.unit;
+    renderWelcome(p);
+  } else {
+    renderWelcome();
+  }
+}
+
+// ======================== WRONG ITEMS (错题集) ========================
+const CORRECT_THRESHOLD = 3;
+let wrongItemsList = [];
+let isWrongMode = false;
+
+async function addWrongItem(item) {
+  if (!currentUser || !db) return;
+  const id = currentUser.email + '|' + item.display;
+  const existing = await dbGet('wrongItems', id);
+  if (existing) {
+    existing.correctCount = 0;
+    await dbPut('wrongItems', existing);
+  } else {
+    await dbPut('wrongItems', {
+      id: id,
+      email: currentUser.email,
+      display: item.display,
+      phonetic: item.phonetic || '',
+      translation: item.translation || '',
+      type: item.type || 'word',
+      correctCount: 0,
+      addedAt: Date.now()
+    });
+  }
+  await updateWrongBadge();
+}
+
+async function incrementWrongCorrect(item) {
+  if (!currentUser || !db) return;
+  const id = currentUser.email + '|' + item.display;
+  const existing = await dbGet('wrongItems', id);
+  if (existing) {
+    existing.correctCount = (existing.correctCount || 0) + 1;
+    if (existing.correctCount >= CORRECT_THRESHOLD) {
+      await dbDelete('wrongItems', id);
+    } else {
+      await dbPut('wrongItems', existing);
+    }
+    await updateWrongBadge();
+  }
+}
+
+async function loadWrongItems() {
+  if (!currentUser || !db) return [];
+  const all = await dbGetAll('wrongItems');
+  wrongItemsList = all.filter(w => w.email === currentUser.email);
+  return wrongItemsList;
+}
+
+async function updateWrongBadge() {
+  await loadWrongItems();
+  const badge = document.getElementById('wrong-badge');
+  if (badge) {
+    badge.textContent = wrongItemsList.length;
+    badge.classList.toggle('empty', wrongItemsList.length === 0);
+  }
+}
+
+function openWrongItems() {
+  currentMode = 'wrong';
+  updateModeTabs();
+  startPractice();
+}
+
 // ======================== STATE ========================
 let currentChapter = null;
 let currentUnit = null;
-let currentMode = 'word'; // 'word' | 'sentence' | 'dictation'
+let currentMode = 'word';
 let practiceItems = [];
 let currentIndex = 0;
 let practiceStartTime = null;
 let totalKeystrokes = 0;
 let correctKeystrokes = 0;
 let incorrectChars = 0;
-let masteredWords = JSON.parse(localStorage.getItem('masteredWords') || '[]');
-let unitProgress = JSON.parse(localStorage.getItem('unitProgress') || '{}');
+let masteredWords = [];
+let unitProgress = {};
 let currentErrors = 0;
+let currentItemHadError = false;
 let dictationRevealed = false;
 let dictationSubmitted = false;
 let voicesLoaded = false;
@@ -1910,8 +2277,20 @@ let voicesLoaded = false;
 // ======================== INIT ========================
 function init() {
   renderSidebar();
-  renderWelcome();
+  if (currentUser) {
+    afterLogin();
+  } else {
+    showLoginScreen();
+    renderWelcome();
+  }
   updateGlobalStats();
+
+  document.getElementById('login-password').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') handleLoginAction();
+  });
+  document.getElementById('login-email').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') document.getElementById('login-password').focus();
+  });
 }
 
 function toggleSidebar() {
@@ -1929,8 +2308,8 @@ function renderSidebar() {
     const chapterDiv = document.createElement('div');
     chapterDiv.className = 'chapter-item';
     
-    const completedUnits = chapter.units.filter(u => 
-      unitProgress[`${ci}-${chapter.units.indexOf(u)}`] === 'done'
+    const completedUnits = chapter.units.filter((_, ui) => 
+      unitProgress[`${ci}-${ui}`] === 'done'
     ).length;
     
     chapterDiv.innerHTML = `
@@ -1961,9 +2340,10 @@ function toggleChapter(ci) {
   chapters[ci].classList.toggle('expanded');
 }
 
-function selectUnit(ci, ui) {
+async function selectUnit(ci, ui) {
   currentChapter = ci;
   currentUnit = ui;
+  isWrongMode = false;
   const chapter = bookData[ci];
   const unit = chapter.units[ui];
   
@@ -1979,6 +2359,7 @@ function selectUnit(ci, ui) {
 
   closeSidebar();
   startPractice();
+  saveProgress();
 }
 
 // ======================== SPEECH SYNTHESIS ========================
@@ -2008,36 +2389,42 @@ function speakText(text, rate) {
 }
 
 // ======================== PRACTICE ========================
-function startPractice() {
-  const unit = bookData[currentChapter].units[currentUnit];
-
-  if (currentMode === 'word') {
-    practiceItems = unit.words.map(w => ({
-      display: w.word,
+async function startPractice() {
+  if (currentMode === 'wrong') {
+    isWrongMode = true;
+    await loadWrongItems();
+    if (wrongItemsList.length === 0) {
+      const area = document.getElementById('practice-area');
+      area.innerHTML = `<div class="empty-state"><h3>错题集为空</h3><p>练习中出错的单词或句子会自动加入错题集，连续答对${CORRECT_THRESHOLD}次后移除</p></div>`;
+      return;
+    }
+    practiceItems = wrongItemsList.map(w => ({
+      display: w.display,
       phonetic: w.phonetic,
-      translation: w.meaning,
-      type: 'word'
+      translation: w.translation,
+      type: w.type,
+      correctCount: w.correctCount || 0
     }));
-  } else if (currentMode === 'sentence') {
-    practiceItems = unit.sentences.map(s => ({
-      display: s.en,
-      translation: s.cn,
-      type: 'sentence'
-    }));
-  } else if (currentMode === 'dictation') {
-    practiceItems = [
-      ...unit.words.map(w => ({
-        display: w.word,
-        phonetic: w.phonetic,
-        translation: w.meaning,
-        type: 'word'
-      })),
-      ...unit.sentences.map(s => ({
-        display: s.en,
-        translation: s.cn,
-        type: 'sentence'
-      }))
-    ];
+    document.getElementById('breadcrumb').innerHTML = `错题集 (<span>${wrongItemsList.length}</span>题)`;
+  } else {
+    isWrongMode = false;
+    if (currentChapter === null) return;
+    const unit = bookData[currentChapter].units[currentUnit];
+
+    if (currentMode === 'word') {
+      practiceItems = unit.words.map(w => ({
+        display: w.word, phonetic: w.phonetic, translation: w.meaning, type: 'word'
+      }));
+    } else if (currentMode === 'sentence') {
+      practiceItems = unit.sentences.map(s => ({
+        display: s.en, translation: s.cn, type: 'sentence'
+      }));
+    } else if (currentMode === 'dictation') {
+      practiceItems = [
+        ...unit.words.map(w => ({ display: w.word, phonetic: w.phonetic, translation: w.meaning, type: 'word' })),
+        ...unit.sentences.map(s => ({ display: s.en, translation: s.cn, type: 'sentence' }))
+      ];
+    }
   }
 
   currentIndex = 0;
@@ -2046,6 +2433,7 @@ function startPractice() {
   correctKeystrokes = 0;
   incorrectChars = 0;
   currentErrors = 0;
+  currentItemHadError = false;
   dictationRevealed = false;
   dictationSubmitted = false;
 
@@ -2074,13 +2462,20 @@ function renderPractice() {
     else if (i === currentIndex) cls = 'active';
     return `<div class="word-chip ${cls}">${i + 1}</div>`;
   }).join('');
-  
+
+  let wrongInfoHtml = '';
+  if (isWrongMode && item.correctCount !== undefined) {
+    const remaining = CORRECT_THRESHOLD - item.correctCount;
+    wrongInfoHtml = `<div class="correct-count-info">还需连续答对 <span>${remaining}</span> 次即可移除</div>`;
+  }
+
   area.innerHTML = `
     <div class="practice-container">
       <div class="progress-bar-container">
         <div class="progress-bar-fill" style="width: ${progress}%"></div>
       </div>
       <div class="word-list-overlay">${chipsHtml}</div>
+      ${wrongInfoHtml}
       ${currentMode === 'dictation' ? `
         <div class="dictation-prompt">
           <span class="listening-icon">\ud83c\udfa7</span>
@@ -2100,7 +2495,7 @@ function renderPractice() {
           </button>
         </div>
         <div class="dictation-hint">\u70b9\u51fb\u201c\u64ad\u653e\u53d1\u97f3\u201d\u542c\u53d6\uff0c\u8f93\u5165\u540e\u81ea\u52a8\u7ea0\u9519\uff1bEsc \u53ef\u67e5\u770b\u7b54\u6848</div>
-      ` : currentMode === 'word' ? `
+      ` : (isWrongMode && item.type === 'word') || (currentMode === 'word' && !isWrongMode) ? `
         <div class="word-display" id="word-display"></div>
         <div class="word-info">
           <div class="phonetic">${item.phonetic || ''}</div>
@@ -2246,6 +2641,7 @@ function revealDictation() {
   }
 
   if (!dictationSubmitted) {
+    currentItemHadError = true;
     currentErrors++;
     dictationSubmitted = true;
   }
@@ -2270,6 +2666,7 @@ function handleInput(e) {
   } else {
     incorrectChars++;
     currentErrors++;
+    currentItemHadError = true;
   }
   
   updateStats();
@@ -2296,23 +2693,32 @@ function handleKeyDown(e) {
   }
 }
 
-function handleCorrect() {
+async function handleCorrect() {
   const item = practiceItems[currentIndex];
   const word = item.display;
 
-  if ((currentMode === 'word' || currentMode === 'dictation') && currentErrors === 0) {
-    if (!masteredWords.includes(word)) {
-      masteredWords.push(word);
-      localStorage.setItem('masteredWords', JSON.stringify(masteredWords));
+  if (isWrongMode) {
+    await incrementWrongCorrect(item);
+  } else {
+    if ((currentMode === 'word' || currentMode === 'dictation') && !currentItemHadError) {
+      if (!masteredWords.includes(word)) {
+        masteredWords.push(word);
+      }
+    }
+    if (currentItemHadError) {
+      await addWrongItem(item);
     }
   }
 
   currentIndex++;
   currentErrors = 0;
+  currentItemHadError = false;
   dictationRevealed = false;
   dictationSubmitted = false;
   if (synth) synth.cancel();
   updateGlobalStats();
+
+  if (!isWrongMode) saveProgress();
 
   setTimeout(() => {
     renderPractice();
@@ -2320,11 +2726,16 @@ function handleCorrect() {
 }
 
 function skipItem() {
+  if (!isWrongMode && currentItemHadError) {
+    addWrongItem(practiceItems[currentIndex]);
+  }
   currentIndex++;
   currentErrors = 0;
+  currentItemHadError = false;
   dictationRevealed = false;
   dictationSubmitted = false;
   if (synth) synth.cancel();
+  if (!isWrongMode) saveProgress();
   renderPractice();
 }
 
@@ -2335,6 +2746,7 @@ function restartUnit() {
   correctKeystrokes = 0;
   incorrectChars = 0;
   currentErrors = 0;
+  currentItemHadError = false;
   dictationRevealed = false;
   dictationSubmitted = false;
   if (synth) synth.cancel();
@@ -2357,22 +2769,23 @@ function renderResults() {
   const wpm = elapsed > 0 ? Math.round((correctKeystrokes / 5) / elapsed) : 0;
   const accuracy = totalKeystrokes > 0 ? Math.round((correctKeystrokes / totalKeystrokes) * 100) : 100;
   
-  const key = `${currentChapter}-${currentUnit}`;
-  if (accuracy >= 80) {
-    unitProgress[key] = 'done';
-    localStorage.setItem('unitProgress', JSON.stringify(unitProgress));
-    renderSidebar();
-    const chapter = bookData[currentChapter];
-    const unitItems = document.querySelectorAll('.chapter-item')[currentChapter].querySelectorAll('.unit-item');
-    if (unitItems[currentUnit]) {
-      unitItems[currentUnit].classList.add('completed');
+  if (!isWrongMode) {
+    const key = `${currentChapter}-${currentUnit}`;
+    if (accuracy >= 80) {
+      unitProgress[key] = 'done';
+      renderSidebar();
+      const chapter = bookData[currentChapter];
+      const unitItems = document.querySelectorAll('.chapter-item')[currentChapter].querySelectorAll('.unit-item');
+      if (unitItems[currentUnit]) {
+        unitItems[currentUnit].classList.add('completed');
+      }
     }
   }
   
   const area = document.getElementById('practice-area');
   area.innerHTML = `
     <div class="result-screen">
-      <h2>练习完成！</h2>
+      <h2>${isWrongMode ? '错题集练习完成！' : '练习完成！'}</h2>
       <div class="result-stats">
         <div class="result-stat">
           <div class="value" style="color: var(--accent-hover)">${wpm}</div>
@@ -2393,7 +2806,7 @@ function renderResults() {
       </div>
       <div class="action-row">
         <button class="btn btn-primary" onclick="restartUnit()">再练一次</button>
-        <button class="btn" onclick="switchMode()">${currentMode === 'word' ? '练句子' : currentMode === 'sentence' ? '听写练习' : '练单词'}</button>
+        ${isWrongMode ? '<button class="btn" onclick="switchToWord()">返回学习</button>' : `<button class="btn" onclick="switchMode()">${currentMode === 'word' ? '练句子' : currentMode === 'sentence' ? '听写练习' : '练单词'}</button>`}
       </div>
     </div>
   `;
@@ -2401,10 +2814,22 @@ function renderResults() {
   updateGlobalStats();
 }
 
+function switchToWord() {
+  currentMode = 'word';
+  isWrongMode = false;
+  updateModeTabs();
+  if (currentChapter !== null) {
+    startPractice();
+  } else {
+    renderWelcome();
+  }
+}
+
 function switchMode() {
   const modes = ['word', 'sentence', 'dictation'];
   const idx = modes.indexOf(currentMode);
   currentMode = modes[(idx + 1) % modes.length];
+  isWrongMode = false;
   updateModeTabs();
   if (currentChapter !== null) {
     startPractice();
@@ -2420,7 +2845,6 @@ function updateModeTabs() {
 function updateGlobalStats() {
   const totalWords = bookData.reduce((sum, ch) => sum + ch.units.reduce((s, u) => s + u.words.length, 0), 0);
   const totalSentences = bookData.reduce((sum, ch) => sum + ch.units.reduce((s, u) => s + u.sentences.length, 0), 0);
-  const totalItems = totalWords + totalSentences;
   
   document.getElementById('stat-practiced').textContent = Object.keys(unitProgress).length;
   document.getElementById('stat-mastered').textContent = masteredWords.length;
@@ -2431,13 +2855,22 @@ function updateGlobalStats() {
   }
 }
 
-function renderWelcome() {
+function renderWelcome(savedProgress) {
   const area = document.getElementById('practice-area');
   const totalWords = bookData.reduce((sum, ch) => sum + ch.units.reduce((s, u) => s + u.words.length, 0), 0);
   const totalSentences = bookData.reduce((sum, ch) => sum + ch.units.reduce((s, u) => s + u.sentences.length, 0), 0);
   
+  let resumeBtn = '';
+  if (savedProgress && savedProgress.chapter !== null && savedProgress.chapter !== undefined) {
+    const ch = bookData[savedProgress.chapter];
+    const unit = ch.units[savedProgress.unit];
+    const modeNames = { word: '单词模式', sentence: '句子模式', dictation: '听写模式' };
+    resumeBtn = `<button class="btn-resume" onclick="resumeLearning(${savedProgress.chapter}, ${savedProgress.unit}, '${savedProgress.mode}')">继续学习：${ch.chapter} > ${unit.title} (${modeNames[savedProgress.mode]})</button>`;
+  }
+  
   area.innerHTML = `
     <div class="welcome-screen">
+      ${resumeBtn}
       <h2>美国人每天说的话</h2>
       <p>基于赖世雄、吴纪维合著的《美国人每天说的话》，通过打字练习强化英语单词和句子的记忆。<br>
       共 <strong style="color:var(--accent-hover)">${bookData.length}</strong> 章、<strong style="color:var(--accent-hover)">${bookData.reduce((s,c)=>s+c.units.length,0)}</strong> 个单元、<strong style="color:var(--accent-hover)">${totalWords}</strong> 个单词、<strong style="color:var(--accent-hover)">${totalSentences}</strong> 个例句。</p>
@@ -2453,19 +2886,41 @@ function renderWelcome() {
           <p>先播放标准美式发音，听音打字，输入后自动纠错</p>
         </div>
         <div class="feature-card">
-          <div class="icon">\ud83d\udcc4</div>
-          <h3>三种模式</h3>
-          <p>单词模式练拼写，句子模式练语感，听写模式练听力</p>
+          <div class="icon">\ud83d\udcdd</div>
+          <h3>错题集</h3>
+          <p>出错的题目自动加入错题集，连续答对${CORRECT_THRESHOLD}次后移除</p>
         </div>
         <div class="feature-card">
           <div class="icon">\ud83d\udcca</div>
-          <h3>实时统计</h3>
-          <p>WPM、正确率、进度实时显示，完成后查看总结</p>
+          <h3>进度保存</h3>
+          <p>登录后自动保存学习进度，下次打开继续上次的位置</p>
         </div>
       </div>
       <button class="btn-start" onclick="selectUnit(0, 0)">开始练习</button>
     </div>
   `;
+}
+
+function resumeLearning(ci, ui, mode) {
+  currentChapter = ci;
+  currentUnit = ui;
+  currentMode = mode || 'word';
+  isWrongMode = false;
+  updateModeTabs();
+  
+  const chapter = bookData[ci];
+  const unit = chapter.units[ui];
+  
+  document.querySelectorAll('.unit-item').forEach(el => el.classList.remove('active'));
+  const chapterDiv = document.querySelectorAll('.chapter-item')[ci];
+  chapterDiv.classList.add('expanded');
+  const unitItems = chapterDiv.querySelectorAll('.unit-item');
+  if (unitItems[ui]) unitItems[ui].classList.add('active');
+  
+  const breadcrumb = document.getElementById('breadcrumb');
+  breadcrumb.innerHTML = `${chapter.chapter} > <span>${unit.title}</span>`;
+  
+  startPractice();
 }
 
 // Mode tabs
@@ -2474,10 +2929,16 @@ document.getElementById('mode-tabs').addEventListener('click', (e) => {
   if (!tab) return;
   const mode = tab.dataset.mode;
   if (mode === currentMode) return;
+  if (mode === 'wrong') {
+    openWrongItems();
+    return;
+  }
   currentMode = mode;
+  isWrongMode = false;
   updateModeTabs();
   if (currentChapter !== null) {
     startPractice();
+    saveProgress();
   }
 });
 
