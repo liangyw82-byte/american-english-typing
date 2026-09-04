@@ -582,10 +582,11 @@ body {
   margin-bottom: 16px;
 }
 .dictation-result-timer {
-  font-size: 13px;
-  color: var(--text-faint);
+  font-size: 14px;
+  color: var(--accent-hover);
   text-align: center;
   margin-top: 8px;
+  font-weight: 600;
 }
 .btn-primary {
   background: var(--accent);
@@ -2263,6 +2264,9 @@ async function updateWrongBadge() {
 }
 
 function openWrongItems() {
+  if (currentMode !== 'wrong' && currentChapter !== null) {
+    saveProgress();
+  }
   currentMode = 'wrong';
   updateModeTabs();
   startPractice();
@@ -2663,6 +2667,9 @@ function revealDictation() {
     currentItemHadError = true;
     currentErrors++;
     dictationSubmitted = true;
+    if (!isWrongMode) {
+      addWrongItem(practiceItems[currentIndex]);
+    }
   }
 }
 
@@ -2770,19 +2777,25 @@ function showDictationResult(item) {
 
   const actionRow = area.querySelector('.action-row');
   if (actionRow) {
-    actionRow.innerHTML = `<div class="dictation-result-timer">5秒后自动下一个</div><button class="btn btn-primary" onclick="advanceToNext()">\u7acb\u5373\u4e0b\u4e00\u4e2a</button>`;
+    actionRow.innerHTML = `<div class="dictation-result-timer" id="dictation-timer">10\u79d2\u540e\u81ea\u52a8\u4e0b\u4e00\u4e2a</div><button class="btn btn-primary" onclick="advanceToNext()">\u7acb\u5373\u4e0b\u4e00\u4e2a</button>`;
   }
 
   if (synth) speakText(item.display, item.type === 'sentence' ? 0.85 : 0.75);
 
-  dictationAutoAdvanceTimer = setTimeout(() => {
-    advanceToNext();
-  }, 5000);
+  let countdown = 10;
+  const timerEl = document.getElementById('dictation-timer');
+  dictationAutoAdvanceTimer = setInterval(() => {
+    countdown--;
+    if (timerEl) timerEl.textContent = countdown + '\u79d2\u540e\u81ea\u52a8\u4e0b\u4e00\u4e2a';
+    if (countdown <= 0) {
+      advanceToNext();
+    }
+  }, 1000);
 }
 
 function advanceToNext() {
   if (dictationAutoAdvanceTimer) {
-    clearTimeout(dictationAutoAdvanceTimer);
+    clearInterval(dictationAutoAdvanceTimer);
     dictationAutoAdvanceTimer = null;
   }
 
@@ -2803,13 +2816,13 @@ function advanceToNext() {
   renderPractice();
 }
 
-function skipItem() {
+async function skipItem() {
   if (isTransitioning) return;
-  if (!isWrongMode && currentItemHadError) {
-    addWrongItem(practiceItems[currentIndex]);
+  if (!isWrongMode && currentItemHadError && !dictationSubmitted) {
+    await addWrongItem(practiceItems[currentIndex]);
   }
   if (dictationAutoAdvanceTimer) {
-    clearTimeout(dictationAutoAdvanceTimer);
+    clearInterval(dictationAutoAdvanceTimer);
     dictationAutoAdvanceTimer = null;
   }
   currentIndex++;
@@ -2825,7 +2838,7 @@ function skipItem() {
 
 function restartUnit() {
   if (dictationAutoAdvanceTimer) {
-    clearTimeout(dictationAutoAdvanceTimer);
+    clearInterval(dictationAutoAdvanceTimer);
     dictationAutoAdvanceTimer = null;
   }
   currentIndex = 0;
@@ -3017,7 +3030,7 @@ function resumeLearning(ci, ui, mode, startIndex) {
 }
 
 // Mode tabs
-document.getElementById('mode-tabs').addEventListener('click', (e) => {
+document.getElementById('mode-tabs').addEventListener('click', async (e) => {
   const tab = e.target.closest('.mode-tab');
   if (!tab) return;
   const mode = tab.dataset.mode;
@@ -3026,11 +3039,19 @@ document.getElementById('mode-tabs').addEventListener('click', (e) => {
     openWrongItems();
     return;
   }
+  const wasWrongMode = currentMode === 'wrong';
   currentMode = mode;
   isWrongMode = false;
   updateModeTabs();
   if (currentChapter !== null) {
-    startPractice();
+    let startIndex = 0;
+    if (wasWrongMode && currentUser && db) {
+      const saved = await dbGet('progress', currentUser.email);
+      if (saved && saved.mode === mode && saved.chapter === currentChapter && saved.unit === currentUnit) {
+        startIndex = saved.index || 0;
+      }
+    }
+    startPractice(startIndex);
     saveProgress();
   }
 });
