@@ -2,7 +2,10 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0f1117">
 <title>美国人每天说的话 - 打字练习</title>
 <style>
 :root {
@@ -27,12 +30,26 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
+html {
+  height: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   background: var(--bg);
   color: var(--text);
-  min-height: 100vh;
+  height: 100vh;
+  height: 100dvh;
   display: flex;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+button {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Sidebar */
@@ -44,6 +61,7 @@ body {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  height: 100dvh;
   position: sticky;
   top: 0;
   overflow: hidden;
@@ -160,7 +178,9 @@ body {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
+  min-width: 0;
 }
 
 .topbar {
@@ -625,8 +645,11 @@ body {
     z-index: 100;
     transform: translateX(-100%);
     transition: transform 0.3s ease;
-    width: 260px;
-    min-width: 260px;
+    width: 80%;
+    max-width: 280px;
+    min-width: 0;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
   }
   .sidebar.open {
     transform: translateX(0);
@@ -634,9 +657,10 @@ body {
   .sidebar.open ~ .sidebar-overlay {
     display: block;
   }
-  .mobile-menu-btn { display: block; }
+  .mobile-menu-btn { display: block; min-height: 44px; min-width: 44px; }
   .topbar {
     padding: 12px 16px;
+    padding-top: calc(12px + env(safe-area-inset-top));
     flex-wrap: wrap;
     gap: 8px;
   }
@@ -656,12 +680,14 @@ body {
     -webkit-overflow-scrolling: touch;
   }
   .mode-tab {
-    padding: 6px 12px;
-    font-size: 12px;
+    padding: 8px 14px;
+    font-size: 13px;
     white-space: nowrap;
+    min-height: 36px;
   }
   .practice-area {
     padding: 16px;
+    padding-bottom: calc(16px + env(safe-area-inset-bottom));
   }
   .word-display {
     font-size: 28px;
@@ -679,10 +705,12 @@ body {
   .typing-input {
     font-size: 16px;
     padding: 12px 14px;
+    min-height: 48px;
   }
   .stats-row {
-    gap: 16px;
+    gap: 12px;
   }
+  .stat-box { min-height: 52px; }
   .stat-box .value { font-size: 20px; }
   .stat-box .label { font-size: 11px; }
   .welcome-screen h2 { font-size: 22px; }
@@ -694,20 +722,25 @@ body {
   .feature-card { padding: 14px; }
   .feature-card .icon { font-size: 22px; }
   .btn-start {
-    padding: 12px 28px;
-    font-size: 14px;
+    padding: 14px 32px;
+    font-size: 15px;
+    min-height: 48px;
   }
   .btn {
-    padding: 8px 16px;
-    font-size: 12px;
-  }
-  .btn-audio, .btn-reveal {
     padding: 10px 18px;
     font-size: 13px;
+    min-height: 44px;
+  }
+  .btn-audio, .btn-reveal {
+    padding: 12px 20px;
+    font-size: 14px;
+    min-height: 48px;
   }
   .word-chip {
-    padding: 3px 8px;
-    font-size: 10px;
+    padding: 4px 10px;
+    font-size: 11px;
+    min-width: 28px;
+    min-height: 24px;
   }
   .dictation-prompt {
     font-size: 15px;
@@ -726,6 +759,17 @@ body {
     flex-wrap: wrap;
   }
   .progress-bar-container { margin-bottom: 20px; }
+  .login-card {
+    padding: 28px 24px;
+    margin: 16px;
+    max-width: none;
+  }
+  .btn-login { min-height: 48px; }
+  .login-field input {
+    min-height: 48px;
+    font-size: 16px;
+  }
+  .btn-resume { min-height: 48px; }
 }
 
 /* Login Screen */
@@ -2053,6 +2097,7 @@ function toggleLoginRegister() {
 }
 
 function handleLoginAction() {
+  warmUpSpeech();
   const email = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-password').value;
   const name = document.getElementById('login-name').value.trim();
@@ -2290,7 +2335,7 @@ let dictationRevealed = false;
 let dictationSubmitted = false;
 let isTransitioning = false;
 let dictationAutoAdvanceTimer = null;
-let voicesLoaded = false;
+let dictationRepeatStop = null;
 
 // ======================== INIT ========================
 function init() {
@@ -2309,6 +2354,17 @@ function init() {
   document.getElementById('login-email').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') document.getElementById('login-password').focus();
   });
+
+  // Warm up speech synthesis on first user interaction (important for mobile)
+  const warmUpOnce = () => {
+    warmUpSpeech();
+    document.removeEventListener('click', warmUpOnce);
+    document.removeEventListener('touchstart', warmUpOnce);
+    document.removeEventListener('keydown', warmUpOnce);
+  };
+  document.addEventListener('click', warmUpOnce);
+  document.addEventListener('touchstart', warmUpOnce);
+  document.addEventListener('keydown', warmUpOnce);
 }
 
 function toggleSidebar() {
@@ -2382,6 +2438,9 @@ async function selectUnit(ci, ui) {
 
 // ======================== SPEECH SYNTHESIS ========================
 const synth = window.speechSynthesis;
+let voicesLoaded = false;
+let speechWarmedUp = false;
+let currentUtterance = null;
 
 function loadVoices() {
   voicesLoaded = true;
@@ -2389,21 +2448,74 @@ function loadVoices() {
 
 if (synth) {
   synth.onvoiceschanged = loadVoices;
+  // Try multiple times to load voices (some browsers fire onvoiceschanged late)
+  const tryLoad = setInterval(() => {
+    if (synth.getVoices().length > 0) {
+      voicesLoaded = true;
+      clearInterval(tryLoad);
+    }
+  }, 200);
+  setTimeout(() => clearInterval(tryLoad), 5000);
   loadVoices();
 }
 
-function speakText(text, rate) {
-  if (!synth) return;
-  synth.cancel();
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = 'en-US';
-  utterance.rate = rate || 0.9;
+function warmUpSpeech() {
+  if (speechWarmedUp || !synth) return;
+  try {
+    const u = new SpeechSynthesisUtterance('');
+    u.volume = 0;
+    synth.speak(u);
+    speechWarmedUp = true;
+  } catch (e) {
+    // ignore
+  }
+}
+
+function getUSVoice() {
+  if (!synth) return null;
   const voices = synth.getVoices();
+  if (!voices || voices.length === 0) return null;
   const usVoice = voices.find(v => v.lang === 'en-US' && /samantha|google us|david|zira/i.test(v.name))
     || voices.find(v => v.lang === 'en-US')
     || voices.find(v => v.lang.startsWith('en'));
-  if (usVoice) utterance.voice = usVoice;
-  synth.speak(utterance);
+  return usVoice || null;
+}
+
+function speakText(text, rate, onEnd) {
+  if (!synth) {
+    if (onEnd) onEnd();
+    return;
+  }
+  try {
+    synth.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-US';
+    utterance.rate = rate || 0.9;
+    utterance.pitch = 1;
+    utterance.volume = 1;
+    const usVoice = getUSVoice();
+    if (usVoice) utterance.voice = usVoice;
+    utterance.onend = () => {
+      currentUtterance = null;
+      if (onEnd) onEnd();
+    };
+    utterance.onerror = () => {
+      currentUtterance = null;
+      if (onEnd) onEnd();
+    };
+    currentUtterance = utterance;
+    synth.speak(utterance);
+    // Fallback: some browsers don't fire onend reliably
+    setTimeout(() => {
+      if (currentUtterance === utterance && !synth.speaking) {
+        currentUtterance = null;
+        if (onEnd) onEnd();
+      }
+    }, 10000);
+  } catch (e) {
+    currentUtterance = null;
+    if (onEnd) onEnd();
+  }
 }
 
 // ======================== PRACTICE ========================
@@ -2631,6 +2743,7 @@ function renderDictationDisplay(typed) {
 }
 
 function playCurrentAudio() {
+  warmUpSpeech();
   const text = practiceItems[currentIndex].display;
   const isSentence = practiceItems[currentIndex].type === 'sentence';
   speakText(text, isSentence ? 0.85 : 0.75);
@@ -2780,7 +2893,20 @@ function showDictationResult(item) {
     actionRow.innerHTML = `<div class="dictation-result-timer" id="dictation-timer">10\u79d2\u540e\u81ea\u52a8\u4e0b\u4e00\u4e2a</div><button class="btn btn-primary" onclick="advanceToNext()">\u7acb\u5373\u4e0b\u4e00\u4e2a</button>`;
   }
 
-  if (synth) speakText(item.display, item.type === 'sentence' ? 0.85 : 0.75);
+  const text = item.display;
+  const rate = item.type === 'sentence' ? 0.85 : 0.75;
+  let keepRepeating = true;
+
+  function playRepeat() {
+    if (!keepRepeating) return;
+    speakText(text, rate, () => {
+      if (!keepRepeating) return;
+      setTimeout(() => {
+        if (keepRepeating) playRepeat();
+      }, 1000);
+    });
+  }
+  playRepeat();
 
   let countdown = 10;
   const timerEl = document.getElementById('dictation-timer');
@@ -2788,9 +2914,16 @@ function showDictationResult(item) {
     countdown--;
     if (timerEl) timerEl.textContent = countdown + '\u79d2\u540e\u81ea\u52a8\u4e0b\u4e00\u4e2a';
     if (countdown <= 0) {
+      keepRepeating = false;
       advanceToNext();
     }
   }, 1000);
+
+  // Store the stop function so advanceToNext/skipItem can stop the repeat loop
+  dictationRepeatStop = () => {
+    keepRepeating = false;
+    if (synth) synth.cancel();
+  };
 }
 
 function advanceToNext() {
@@ -2798,6 +2931,11 @@ function advanceToNext() {
     clearInterval(dictationAutoAdvanceTimer);
     dictationAutoAdvanceTimer = null;
   }
+  if (dictationRepeatStop) {
+    dictationRepeatStop();
+    dictationRepeatStop = null;
+  }
+  if (synth) synth.cancel();
 
   currentIndex++;
   currentErrors = 0;
@@ -2825,6 +2963,10 @@ async function skipItem() {
     clearInterval(dictationAutoAdvanceTimer);
     dictationAutoAdvanceTimer = null;
   }
+  if (dictationRepeatStop) {
+    dictationRepeatStop();
+    dictationRepeatStop = null;
+  }
   currentIndex++;
   currentErrors = 0;
   currentItemHadError = false;
@@ -2840,6 +2982,10 @@ function restartUnit() {
   if (dictationAutoAdvanceTimer) {
     clearInterval(dictationAutoAdvanceTimer);
     dictationAutoAdvanceTimer = null;
+  }
+  if (dictationRepeatStop) {
+    dictationRepeatStop();
+    dictationRepeatStop = null;
   }
   currentIndex = 0;
   practiceStartTime = null;
