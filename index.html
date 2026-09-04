@@ -40,11 +40,15 @@ body {
   background: var(--bg);
   color: var(--text);
   height: 100vh;
-  height: 100dvh;
+  height: calc(var(--app-height, 100vh));
   display: flex;
   overflow: hidden;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 100%;
 }
 
 button {
@@ -61,7 +65,7 @@ button {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  height: 100dvh;
+  height: calc(var(--app-height, 100vh));
   position: sticky;
   top: 0;
   overflow: hidden;
@@ -178,7 +182,7 @@ button {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  height: 100dvh;
+  height: calc(var(--app-height, 100vh));
   overflow: hidden;
   min-width: 0;
 }
@@ -2446,21 +2450,32 @@ function loadVoices() {
   voicesLoaded = true;
 }
 
-if (synth) {
-  synth.onvoiceschanged = loadVoices;
+if (synth && typeof synth.addEventListener === 'function') {
+  synth.addEventListener('voiceschanged', loadVoices);
   // Try multiple times to load voices (some browsers fire onvoiceschanged late)
   const tryLoad = setInterval(() => {
-    if (synth.getVoices().length > 0) {
-      voicesLoaded = true;
+    try {
+      if (synth.getVoices().length > 0) {
+        voicesLoaded = true;
+        clearInterval(tryLoad);
+      }
+    } catch (e) {
       clearInterval(tryLoad);
     }
   }, 200);
   setTimeout(() => clearInterval(tryLoad), 5000);
   loadVoices();
+} else if (synth) {
+  try {
+    synth.onvoiceschanged = loadVoices;
+    loadVoices();
+  } catch (e) {
+    // ignore
+  }
 }
 
 function warmUpSpeech() {
-  if (speechWarmedUp || !synth) return;
+  if (speechWarmedUp || !synth || typeof SpeechSynthesisUtterance === 'undefined') return;
   try {
     const u = new SpeechSynthesisUtterance('');
     u.volume = 0;
@@ -2482,7 +2497,7 @@ function getUSVoice() {
 }
 
 function speakText(text, rate, onEnd) {
-  if (!synth) {
+  if (!synth || typeof SpeechSynthesisUtterance === 'undefined') {
     if (onEnd) onEnd();
     return;
   }
@@ -3200,6 +3215,22 @@ document.getElementById('mode-tabs').addEventListener('click', async (e) => {
     startPractice(startIndex);
     saveProgress();
   }
+});
+
+// Fix mobile viewport height (address bar issue)
+function setAppHeight() {
+  const vh = window.innerHeight * 0.01;
+  document.documentElement.style.setProperty('--vh', vh + 'px');
+  document.documentElement.style.setProperty('--app-height', window.innerHeight + 'px');
+}
+setAppHeight();
+window.addEventListener('resize', setAppHeight);
+window.addEventListener('orientationchange', () => setTimeout(setAppHeight, 100));
+
+// Global error handler - ensure page stays usable even if some JS fails
+window.addEventListener('error', function(e) {
+  console.error('Global error:', e.message);
+  // Don't prevent default behavior, just log
 });
 
 // Start
