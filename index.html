@@ -619,6 +619,13 @@ button {
 }
 .btn-primary:hover { background: var(--accent-hover); }
 
+.btn-success {
+  background: var(--correct);
+  color: #fff;
+  border: none;
+}
+.btn-success:hover { filter: brightness(1.1); }
+
 /* Mobile menu button */
 .mobile-menu-btn {
   display: none;
@@ -864,6 +871,11 @@ button {
   text-align: center; margin-bottom: 12px;
 }
 .correct-count-info span { color: var(--success); font-weight: 600; }
+.wrong-mode-hint {
+  font-size: 12px; color: var(--accent);
+  text-align: center; margin-bottom: 12px;
+  font-weight: 500;
+}
 </style>
 </head>
 <body>
@@ -2263,10 +2275,7 @@ async function addWrongItem(item) {
   if (!currentUser || !db) return;
   const id = currentUser.email + '|' + item.display;
   const existing = await dbGet('wrongItems', id);
-  if (existing) {
-    existing.correctCount = 0;
-    await dbPut('wrongItems', existing);
-  } else {
+  if (!existing) {
     await dbPut('wrongItems', {
       id: id,
       email: currentUser.email,
@@ -2274,26 +2283,18 @@ async function addWrongItem(item) {
       phonetic: item.phonetic || '',
       translation: item.translation || '',
       type: item.type || 'word',
-      correctCount: 0,
       addedAt: Date.now()
     });
   }
   await updateWrongBadge();
 }
 
-async function incrementWrongCorrect(item) {
+async function removeFromWrongItems(item) {
   if (!currentUser || !db) return;
   const id = currentUser.email + '|' + item.display;
-  const existing = await dbGet('wrongItems', id);
-  if (existing) {
-    existing.correctCount = (existing.correctCount || 0) + 1;
-    if (existing.correctCount >= CORRECT_THRESHOLD) {
-      await dbDelete('wrongItems', id);
-    } else {
-      await dbPut('wrongItems', existing);
-    }
-    await updateWrongBadge();
-  }
+  await dbDelete('wrongItems', id);
+  await loadWrongItems();
+  await updateWrongBadge();
 }
 
 async function loadWrongItems() {
@@ -2534,21 +2535,24 @@ function speakText(text, rate, onEnd) {
 }
 
 // ======================== PRACTICE ========================
+function renderWrongItemsEmpty() {
+  const area = document.getElementById('practice-area');
+  area.innerHTML = `<div class="empty-state"><h3>错题集为空</h3><p>练习中出错的单词或句子会自动加入错题集，确认掌握后可手动移除</p></div>`;
+}
+
 async function startPractice(startIndex) {
   if (currentMode === 'wrong') {
     isWrongMode = true;
     await loadWrongItems();
     if (wrongItemsList.length === 0) {
-      const area = document.getElementById('practice-area');
-      area.innerHTML = `<div class="empty-state"><h3>错题集为空</h3><p>练习中出错的单词或句子会自动加入错题集，连续答对${CORRECT_THRESHOLD}次后移除</p></div>`;
+      renderWrongItemsEmpty();
       return;
     }
     practiceItems = wrongItemsList.map(w => ({
       display: w.display,
       phonetic: w.phonetic,
       translation: w.translation,
-      type: w.type,
-      correctCount: w.correctCount || 0
+      type: w.type
     }));
     for (let i = practiceItems.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -2614,9 +2618,8 @@ function renderPractice() {
   }).join('');
 
   let wrongInfoHtml = '';
-  if (isWrongMode && item.correctCount !== undefined) {
-    const remaining = CORRECT_THRESHOLD - item.correctCount;
-    wrongInfoHtml = `<div class="correct-count-info">还需连续答对 <span>${remaining}</span> 次即可移除</div>`;
+  if (isWrongMode) {
+    wrongInfoHtml = `<div class="wrong-mode-hint">错题集练习 · 确认已掌握后可手动移除</div>`;
   }
 
   area.innerHTML = `
@@ -2860,9 +2863,7 @@ async function handleCorrect() {
   const item = practiceItems[currentIndex];
   const word = item.display;
 
-  if (isWrongMode) {
-    await incrementWrongCorrect(item);
-  } else {
+  if (!isWrongMode) {
     if ((currentMode === 'word' || currentMode === 'dictation') && !currentItemHadError) {
       if (!masteredWords.includes(word)) {
         masteredWords.push(word);
@@ -2905,7 +2906,11 @@ function showDictationResult(item) {
 
   const actionRow = area.querySelector('.action-row');
   if (actionRow) {
-    actionRow.innerHTML = `<div class="dictation-result-timer" id="dictation-timer">10\u79d2\u540e\u81ea\u52a8\u4e0b\u4e00\u4e2a</div><button class="btn btn-primary" onclick="advanceToNext()">\u7acb\u5373\u4e0b\u4e00\u4e2a</button>`;
+    if (isWrongMode) {
+      actionRow.innerHTML = `<button class="btn btn-success" id="btn-mastered" onclick="handleMasteredWrongItem()">✓ 我已经会了，移除</button><div class="dictation-result-timer" id="dictation-timer">10\u79d2\u540e\u81ea\u52a8\u4e0b\u4e00\u4e2a</div><button class="btn btn-primary" onclick="advanceToNext()">\u7acb\u5373\u4e0b\u4e00\u4e2a</button>`;
+    } else {
+      actionRow.innerHTML = `<div class="dictation-result-timer" id="dictation-timer">10\u79d2\u540e\u81ea\u52a8\u4e0b\u4e00\u4e2a</div><button class="btn btn-primary" onclick="advanceToNext()">\u7acb\u5373\u4e0b\u4e00\u4e2a</button>`;
+    }
   }
 
   const text = item.display;
@@ -2939,6 +2944,42 @@ function showDictationResult(item) {
     keepRepeating = false;
     if (synth) synth.cancel();
   };
+}
+
+async function handleMasteredWrongItem() {
+  if (!isWrongMode) {
+    advanceToNext();
+    return;
+  }
+  const item = practiceItems[currentIndex];
+  if (item) {
+    await removeFromWrongItems(item);
+  }
+  // Remove from current practice list too
+  practiceItems.splice(currentIndex, 1);
+  if (practiceItems.length === 0) {
+    // All wrong items mastered, show completion
+    renderWrongItemsEmpty();
+    return;
+  }
+  if (currentIndex >= practiceItems.length) {
+    currentIndex = 0;
+  }
+  if (dictationAutoAdvanceTimer) {
+    clearInterval(dictationAutoAdvanceTimer);
+    dictationAutoAdvanceTimer = null;
+  }
+  if (dictationRepeatStop) {
+    dictationRepeatStop();
+    dictationRepeatStop = null;
+  }
+  if (synth) synth.cancel();
+  isTransitioning = false;
+  dictationSubmitted = false;
+  dictationRevealed = false;
+  currentItemHadError = false;
+  currentErrors = 0;
+  renderPracticeArea();
 }
 
 function advanceToNext() {
@@ -3155,7 +3196,7 @@ function renderWelcome(savedProgress) {
         <div class="feature-card">
           <div class="icon">\ud83d\udcdd</div>
           <h3>错题集</h3>
-          <p>出错的题目自动加入错题集，连续答对${CORRECT_THRESHOLD}次后移除</p>
+          <p>出错的题目自动加入错题集，确认掌握后可手动移除</p>
         </div>
         <div class="feature-card">
           <div class="icon">\ud83d\udcca</div>
