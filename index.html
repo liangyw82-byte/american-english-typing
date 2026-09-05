@@ -2489,15 +2489,35 @@ function buildPhoneticDict() {
   return phoneticDict;
 }
 
+function stripSlashes(p) {
+  if (!p) return '';
+  return p.replace(/^\/+|\/+$/g, '');
+}
+
 function getSentencePhonetic(sentence) {
   const dict = buildPhoneticDict();
   const clean = sentence.replace(/[!?.,;:()'"-]/g, '').trim();
   const words = clean.split(/\s+/);
-  const phoneticWords = words.map(w => {
-    const key = w.toLowerCase();
-    return dict[key] || w;
-  });
-  return '/' + phoneticWords.join(' ') + '/';
+  const phoneticParts = [];
+  let i = 0;
+  while (i < words.length) {
+    let matched = false;
+    // Try 3-word, 2-word, then 1-word match
+    for (let len = Math.min(3, words.length - i); len >= 1; len--) {
+      const phrase = words.slice(i, i + len).join(' ').toLowerCase();
+      if (dict[phrase]) {
+        phoneticParts.push(stripSlashes(dict[phrase]));
+        i += len;
+        matched = true;
+        break;
+      }
+    }
+    if (!matched) {
+      phoneticParts.push(words[i]);
+      i++;
+    }
+  }
+  return '/' + phoneticParts.join(' ') + '/';
 }
 
 // ======================== SPEECH SYNTHESIS ========================
