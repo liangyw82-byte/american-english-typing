@@ -383,6 +383,12 @@ button {
   font-size: 15px;
   color: var(--text-faint);
 }
+.sentence-phonetic {
+  font-size: 15px;
+  color: var(--accent);
+  margin: 6px 0;
+  font-style: italic;
+}
 
 .input-area {
   width: 100%;
@@ -599,6 +605,26 @@ button {
   font-weight: 600;
 }
 .btn-reveal:hover { background: var(--bg-hover); color: var(--text); }
+.btn-fuzzy {
+  padding: 12px 20px;
+  border-radius: var(--radius);
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 2px solid #e6c200;
+  background: #fffbe6;
+  color: #b8860b;
+  font-weight: 600;
+}
+.btn-fuzzy:hover { background: #fff4cc; }
+.fuzzy-notice {
+  font-size: 14px;
+  color: #e6a700;
+  font-weight: 600;
+  padding: 8px 16px;
+  background: #fffbe6;
+  border-radius: var(--radius);
+}
 .dictation-hint {
   font-size: 13px;
   color: var(--text-faint);
@@ -2441,6 +2467,39 @@ async function selectUnit(ci, ui) {
   saveProgress();
 }
 
+// ======================== PHONETICS ========================
+let phoneticDict = null;
+
+function buildPhoneticDict() {
+  if (phoneticDict) return phoneticDict;
+  phoneticDict = {};
+  for (let c = 0; c < bookData.length; c++) {
+    const chapter = bookData[c];
+    for (let u = 0; u < chapter.units.length; u++) {
+      const unit = chapter.units[u];
+      for (let w = 0; w < unit.words.length; w++) {
+        const word = unit.words[w];
+        const key = word.word.toLowerCase();
+        if (!phoneticDict[key]) {
+          phoneticDict[key] = word.phonetic;
+        }
+      }
+    }
+  }
+  return phoneticDict;
+}
+
+function getSentencePhonetic(sentence) {
+  const dict = buildPhoneticDict();
+  const clean = sentence.replace(/[!?.,;:()'"-]/g, '').trim();
+  const words = clean.split(/\s+/);
+  const phoneticWords = words.map(w => {
+    const key = w.toLowerCase();
+    return dict[key] || w;
+  });
+  return '/' + phoneticWords.join(' ') + '/';
+}
+
 // ======================== SPEECH SYNTHESIS ========================
 const synth = window.speechSynthesis;
 let voicesLoaded = false;
@@ -2570,12 +2629,12 @@ async function startPractice(startIndex) {
       }));
     } else if (currentMode === 'sentence') {
       practiceItems = unit.sentences.map(s => ({
-        display: s.en, translation: s.cn, type: 'sentence'
+        display: s.en, phonetic: getSentencePhonetic(s.en), translation: s.cn, type: 'sentence'
       }));
     } else if (currentMode === 'dictation') {
       practiceItems = [
         ...unit.words.map(w => ({ display: w.word, phonetic: w.phonetic, translation: w.meaning, type: 'word' })),
-        ...unit.sentences.map(s => ({ display: s.en, translation: s.cn, type: 'sentence' }))
+        ...unit.sentences.map(s => ({ display: s.en, phonetic: getSentencePhonetic(s.en), translation: s.cn, type: 'sentence' }))
       ];
     }
   }
@@ -2646,6 +2705,9 @@ function renderPractice() {
           <button class="btn-reveal" id="btn-reveal" onclick="revealDictation()">
             \u663e\u793a\u7b54\u6848 (Esc)
           </button>
+          <button class="btn-fuzzy" id="btn-fuzzy" onclick="markFuzzy()">
+            \u2753 \u6a21\u7cca
+          </button>
         </div>
         <div class="dictation-hint">\u70b9\u51fb\u201c\u64ad\u653e\u53d1\u97f3\u201d\u542c\u53d6\uff0c\u8f93\u5165\u540e\u81ea\u52a8\u7ea0\u9519\uff1bEsc \u53ef\u67e5\u770b\u7b54\u6848</div>
       ` : currentMode === 'word' ? `
@@ -2657,6 +2719,7 @@ function renderPractice() {
       ` : `
         <div class="sentence-display">
           <div class="sentence-english" id="word-display"></div>
+          <div class="phonetic sentence-phonetic">${item.phonetic || ''}</div>
           <div class="sentence-chinese">${item.translation || ''}</div>
         </div>
       `}
@@ -2772,6 +2835,51 @@ function playCurrentAudio() {
   }
 }
 
+async function markFuzzy() {
+  if (isTransitioning || dictationSubmitted) return;
+  const item = practiceItems[currentIndex];
+  if (!isWrongMode) {
+    await addWrongItem(item);
+  }
+  // Show answer and mark as had error
+  dictationSubmitted = true;
+  currentItemHadError = true;
+  currentErrors++;
+
+  const display = document.getElementById('dictation-display');
+  if (display) {
+    display.classList.add('revealed');
+    let html = '';
+    for (let i = 0; i < item.display.length; i++) {
+      html += `<span class="char">${item.display[i] === ' ' ? '&nbsp;' : item.display[i]}</span>`;
+    }
+    display.innerHTML = html;
+  }
+  const info = document.getElementById('dictation-info');
+  if (info) info.style.display = 'block';
+
+  const hintEl = document.querySelector('.dictation-hint');
+  if (hintEl) hintEl.remove();
+  const audioControls = document.querySelector('.audio-controls');
+  if (audioControls) audioControls.remove();
+
+  const input = document.getElementById('typing-input');
+  if (input) {
+    input.classList.add('incorrect');
+    input.disabled = true;
+  }
+
+  const area = document.getElementById('practice-area');
+  const actionRow = area.querySelector('.action-row');
+  if (actionRow) {
+    actionRow.innerHTML = `<div class="fuzzy-notice">已加入错题集</div><button class="btn btn-primary" onclick="advanceToNext()">\u4e0b\u4e00\u4e2a</button>`;
+  }
+
+  if (synth) synth.cancel();
+  isTransitioning = true;
+  setTimeout(() => { isTransitioning = false; }, 300);
+}
+
 function revealDictation() {
   dictationRevealed = true;
   const display = document.getElementById('dictation-display');
@@ -2782,8 +2890,8 @@ function revealDictation() {
   const target = practiceItems[currentIndex].display;
   const input = document.getElementById('typing-input');
   if (input) {
-    input.value = target;
     input.classList.add('incorrect');
+    input.focus();
   }
   renderDictationDisplay(target);
 
@@ -2904,12 +3012,14 @@ function showDictationResult(item) {
   const audioControls = document.querySelector('.audio-controls');
   if (audioControls) audioControls.remove();
 
+  const DICTATION_RESULT_SECONDS = 20;
+
   const actionRow = area.querySelector('.action-row');
   if (actionRow) {
     if (isWrongMode) {
-      actionRow.innerHTML = `<button class="btn btn-success" id="btn-mastered" onclick="handleMasteredWrongItem()">✓ 我已经会了，移除</button><div class="dictation-result-timer" id="dictation-timer">10\u79d2\u540e\u81ea\u52a8\u4e0b\u4e00\u4e2a</div><button class="btn btn-primary" onclick="advanceToNext()">\u7acb\u5373\u4e0b\u4e00\u4e2a</button>`;
+      actionRow.innerHTML = `<button class="btn btn-success" id="btn-mastered" onclick="handleMasteredWrongItem()">✓ 我已经会了，移除</button><div class="dictation-result-timer" id="dictation-timer">${DICTATION_RESULT_SECONDS}\u79d2\u540e\u81ea\u52a8\u4e0b\u4e00\u4e2a</div><button class="btn btn-primary" onclick="advanceToNext()">\u7acb\u5373\u4e0b\u4e00\u4e2a</button>`;
     } else {
-      actionRow.innerHTML = `<div class="dictation-result-timer" id="dictation-timer">10\u79d2\u540e\u81ea\u52a8\u4e0b\u4e00\u4e2a</div><button class="btn btn-primary" onclick="advanceToNext()">\u7acb\u5373\u4e0b\u4e00\u4e2a</button>`;
+      actionRow.innerHTML = `<div class="dictation-result-timer" id="dictation-timer">${DICTATION_RESULT_SECONDS}\u79d2\u540e\u81ea\u52a8\u4e0b\u4e00\u4e2a</div><button class="btn btn-primary" onclick="advanceToNext()">\u7acb\u5373\u4e0b\u4e00\u4e2a</button>`;
     }
   }
 
@@ -2928,7 +3038,7 @@ function showDictationResult(item) {
   }
   playRepeat();
 
-  let countdown = 10;
+  let countdown = DICTATION_RESULT_SECONDS;
   const timerEl = document.getElementById('dictation-timer');
   dictationAutoAdvanceTimer = setInterval(() => {
     countdown--;
