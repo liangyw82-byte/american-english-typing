@@ -76,6 +76,36 @@ button {
   border-bottom: 1px solid var(--border);
 }
 
+.textbook-selector {
+  margin-bottom: 12px;
+}
+
+.textbook-select {
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 30px;
+}
+
+.textbook-select:focus {
+  border-color: var(--accent);
+}
+
+.textbook-select option {
+  background: var(--bg-card);
+  color: var(--text);
+}
+
 .sidebar-header h1 {
   font-size: 16px;
   font-weight: 700;
@@ -935,8 +965,9 @@ button {
 <!-- Sidebar -->
 <div class="sidebar" id="sidebar">
   <div class="sidebar-header">
-    <h1>美国人每天说的话</h1>
-    <p>赖世雄 / 吴纪维 - 打字练习</p>
+    <div class="textbook-selector" id="textbook-selector"></div>
+    <h1 id="sidebar-title">美国人每天说的话</h1>
+    <p id="sidebar-subtitle">打字练习</p>
   </div>
   <div class="user-info" id="user-info" style="display:none">
     <span class="user-email" id="user-email-display"></span>
@@ -974,7 +1005,14 @@ button {
 
 <script>
 // ======================== BOOK DATA ========================
-const bookData = [
+const textbooks = [
+{
+  id: "american-daily",
+  title: "美国人每天说的话",
+  subtitle: "American English Daily",
+  icon: "🇺🇸",
+  hasVolumes: false,
+  units: [
   {
     chapter: "Chapter 1", title: "Daily Life 生活的样貌",
     units: [
@@ -2111,7 +2149,30 @@ const bookData = [
       }
     ]
   }
+  ]
+}
 ];
+
+// ======================== STATE: TEXTBOOK ========================
+let currentTextbook = 0;
+let currentVolume = null;
+
+function getCurrentTextbook() {
+  return textbooks[currentTextbook];
+}
+
+function getCurrentUnits() {
+  const tb = textbooks[currentTextbook];
+  if (!tb) return [];
+  if (tb.hasVolumes && currentVolume !== null && tb.volumes && tb.volumes[currentVolume]) {
+    return tb.volumes[currentVolume].units;
+  }
+  return tb.units || [];
+}
+
+function getTextbookId() {
+  return textbooks[currentTextbook] ? textbooks[currentTextbook].id : 'american-daily';
+}
 
 // ======================== USER AUTH ========================
 let currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
@@ -2204,7 +2265,7 @@ let db = null;
 
 function initDB() {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open('typing_practice', 2);
+    const request = indexedDB.open('typing_practice', 3);
     request.onupgradeneeded = function(e) {
       const database = e.target.result;
       if (!database.objectStoreNames.contains('progress')) {
@@ -2213,6 +2274,20 @@ function initDB() {
       if (!database.objectStoreNames.contains('wrongItems')) {
         const store = database.createObjectStore('wrongItems', { keyPath: 'id' });
         store.createIndex('email', 'email', { unique: false });
+        store.createIndex('textbookId', 'textbookId', { unique: false });
+      }
+      if (e.oldVersion < 3) {
+        const tx = e.target.transaction;
+        if (tx) {
+          const progressStore = tx.objectStore('progress');
+          if (progressStore && !progressStore.indexNames.contains('textbookId')) {
+            progressStore.createIndex('textbookId', 'textbookId', { unique: false });
+          }
+          const wrongStore = tx.objectStore('wrongItems');
+          if (wrongStore && !wrongStore.indexNames.contains('textbookId')) {
+            wrongStore.createIndex('textbookId', 'textbookId', { unique: false });
+          }
+        }
       }
     };
     request.onsuccess = function(e) {
@@ -2270,6 +2345,8 @@ async function saveProgress() {
   if (!currentUser || !db) return;
   await dbPut('progress', {
     email: currentUser.email,
+    textbookId: getTextbookId(),
+    volumeId: currentVolume,
     chapter: currentChapter,
     unit: currentUnit,
     mode: currentMode,
@@ -2282,10 +2359,16 @@ async function restoreProgress() {
   if (!currentUser || !db) return;
   const p = await dbGet('progress', currentUser.email);
   if (p && p.chapter !== null && p.chapter !== undefined) {
+    if (p.textbookId) {
+      const tbIdx = textbooks.findIndex(t => t.id === p.textbookId);
+      if (tbIdx >= 0) currentTextbook = tbIdx;
+    }
+    currentVolume = p.volumeId !== undefined ? p.volumeId : null;
     currentMode = p.mode || 'word';
     updateModeTabs();
     currentChapter = p.chapter;
     currentUnit = p.unit;
+    renderSidebar();
     renderWelcome(p);
   } else {
     renderWelcome();
@@ -2299,12 +2382,14 @@ let isWrongMode = false;
 
 async function addWrongItem(item) {
   if (!currentUser || !db) return;
-  const id = currentUser.email + '|' + item.display;
+  const tbId = getTextbookId();
+  const id = currentUser.email + '|' + tbId + '|' + item.display;
   const existing = await dbGet('wrongItems', id);
   if (!existing) {
     await dbPut('wrongItems', {
       id: id,
       email: currentUser.email,
+      textbookId: tbId,
       display: item.display,
       phonetic: item.phonetic || '',
       translation: item.translation || '',
@@ -2317,7 +2402,8 @@ async function addWrongItem(item) {
 
 async function removeFromWrongItems(item) {
   if (!currentUser || !db) return;
-  const id = currentUser.email + '|' + item.display;
+  const tbId = getTextbookId();
+  const id = currentUser.email + '|' + tbId + '|' + item.display;
   await dbDelete('wrongItems', id);
   await loadWrongItems();
   await updateWrongBadge();
@@ -2325,8 +2411,9 @@ async function removeFromWrongItems(item) {
 
 async function loadWrongItems() {
   if (!currentUser || !db) return [];
+  const tbId = getTextbookId();
   const all = await dbGetAll('wrongItems');
-  wrongItemsList = all.filter(w => w.email === currentUser.email);
+  wrongItemsList = all.filter(w => w.email === currentUser.email && (w.textbookId === tbId || (!w.textbookId && tbId === 'american-daily')));
   return wrongItemsList;
 }
 
@@ -2406,10 +2493,37 @@ function closeSidebar() {
   document.getElementById('sidebar').classList.remove('open');
 }
 
+async function switchTextbook(idx) {
+  currentTextbook = parseInt(idx);
+  currentVolume = null;
+  currentChapter = null;
+  currentUnit = null;
+  isWrongMode = false;
+  renderSidebar();
+  await updateWrongBadge();
+  renderWelcome();
+  updateGlobalStats();
+}
+
 function renderSidebar() {
   const nav = document.getElementById('sidebar-nav');
   nav.innerHTML = '';
-  bookData.forEach((chapter, ci) => {
+
+  // Render textbook selector
+  const selector = document.getElementById('textbook-selector');
+  const tb = getCurrentTextbook();
+  if (textbooks.length > 1) {
+    selector.innerHTML = `<select class="textbook-select" onchange="switchTextbook(this.value)">
+      ${textbooks.map((t, i) => `<option value="${i}" ${i === currentTextbook ? 'selected' : ''}>${t.icon || ''} ${t.title}</option>`).join('')}
+    </select>`;
+  } else {
+    selector.innerHTML = '';
+  }
+  document.getElementById('sidebar-title').textContent = tb.title;
+  document.getElementById('sidebar-subtitle').textContent = tb.subtitle || '';
+
+  const units = getCurrentUnits();
+  units.forEach((chapter, ci) => {
     const chapterDiv = document.createElement('div');
     chapterDiv.className = 'chapter-item';
     
@@ -2449,7 +2563,7 @@ async function selectUnit(ci, ui) {
   currentChapter = ci;
   currentUnit = ui;
   isWrongMode = false;
-  const chapter = bookData[ci];
+  const chapter = getCurrentUnits()[ci];
   const unit = chapter.units[ui];
   
   document.querySelectorAll('.unit-item').forEach(el => el.classList.remove('active'));
@@ -3047,15 +3161,19 @@ function buildPhoneticDict() {
   for (let k = 0; k < keys.length; k++) {
     phoneticDict[keys[k]] = COMMON_WORDS_PHONETICS[keys[k]];
   }
-  // Then override with book data (book data has priority)
-  for (let c = 0; c < bookData.length; c++) {
-    const chapter = bookData[c];
-    for (let u = 0; u < chapter.units.length; u++) {
-      const unit = chapter.units[u];
-      for (let w = 0; w < unit.words.length; w++) {
-        const word = unit.words[w];
-        const key = word.word.toLowerCase();
-        phoneticDict[key] = word.phonetic;
+  // Then override with all textbooks data (book data has priority)
+  for (let t = 0; t < textbooks.length; t++) {
+    const tb = textbooks[t];
+    const allUnits = tb.hasVolumes ? (tb.volumes || []).flatMap(v => v.units || []) : (tb.units || []);
+    for (let c = 0; c < allUnits.length; c++) {
+      const chapter = allUnits[c];
+      for (let u = 0; u < chapter.units.length; u++) {
+        const unit = chapter.units[u];
+        for (let w = 0; w < unit.words.length; w++) {
+          const word = unit.words[w];
+          const key = word.word.toLowerCase();
+          phoneticDict[key] = word.phonetic;
+        }
       }
     }
   }
@@ -3214,7 +3332,7 @@ async function startPractice(startIndex) {
   } else {
     isWrongMode = false;
     if (currentChapter === null) return;
-    const unit = bookData[currentChapter].units[currentUnit];
+    const unit = getCurrentUnits()[currentChapter].units[currentUnit];
 
     if (currentMode === 'word') {
       practiceItems = unit.words.map(w => ({
@@ -3785,7 +3903,7 @@ function renderResults() {
     if (accuracy >= 80) {
       unitProgress[key] = 'done';
       renderSidebar();
-      const chapter = bookData[currentChapter];
+      const chapter = getCurrentUnits()[currentChapter];
       const unitItems = document.querySelectorAll('.chapter-item')[currentChapter].querySelectorAll('.unit-item');
       if (unitItems[currentUnit]) {
         unitItems[currentUnit].classList.add('completed');
@@ -3854,8 +3972,9 @@ function updateModeTabs() {
 }
 
 function updateGlobalStats() {
-  const totalWords = bookData.reduce((sum, ch) => sum + ch.units.reduce((s, u) => s + u.words.length, 0), 0);
-  const totalSentences = bookData.reduce((sum, ch) => sum + ch.units.reduce((s, u) => s + u.sentences.length, 0), 0);
+  const units = getCurrentUnits();
+  const totalWords = units.reduce((sum, ch) => sum + ch.units.reduce((s, u) => s + u.words.length, 0), 0);
+  const totalSentences = units.reduce((sum, ch) => sum + ch.units.reduce((s, u) => s + u.sentences.length, 0), 0);
   
   document.getElementById('stat-practiced').textContent = Object.keys(unitProgress).length;
   document.getElementById('stat-mastered').textContent = masteredWords.length;
@@ -3868,23 +3987,25 @@ function updateGlobalStats() {
 
 function renderWelcome(savedProgress) {
   const area = document.getElementById('practice-area');
-  const totalWords = bookData.reduce((sum, ch) => sum + ch.units.reduce((s, u) => s + u.words.length, 0), 0);
-  const totalSentences = bookData.reduce((sum, ch) => sum + ch.units.reduce((s, u) => s + u.sentences.length, 0), 0);
-  
+  const tb = getCurrentTextbook();
+  const units = getCurrentUnits();
+  const totalWords = units.reduce((sum, ch) => sum + ch.units.reduce((s, u) => s + u.words.length, 0), 0);
+  const totalSentences = units.reduce((sum, ch) => sum + ch.units.reduce((s, u) => s + u.sentences.length, 0), 0);
+
   let resumeBtn = '';
   if (savedProgress && savedProgress.chapter !== null && savedProgress.chapter !== undefined) {
-    const ch = bookData[savedProgress.chapter];
+    const ch = units[savedProgress.chapter];
     const unit = ch.units[savedProgress.unit];
     const modeNames = { word: '单词模式', sentence: '句子模式', dictation: '听写模式' };
     resumeBtn = `<button class="btn-resume" onclick="resumeLearning(${savedProgress.chapter}, ${savedProgress.unit}, '${savedProgress.mode}', ${savedProgress.index || 0})">继续学习：${ch.chapter} > ${unit.title} (${modeNames[savedProgress.mode]})</button>`;
   }
-  
+
   area.innerHTML = `
     <div class="welcome-screen">
       ${resumeBtn}
-      <h2>美国人每天说的话</h2>
-      <p>基于赖世雄、吴纪维合著的《美国人每天说的话》，通过打字练习强化英语单词和句子的记忆。<br>
-      共 <strong style="color:var(--accent-hover)">${bookData.length}</strong> 章、<strong style="color:var(--accent-hover)">${bookData.reduce((s,c)=>s+c.units.length,0)}</strong> 个单元、<strong style="color:var(--accent-hover)">${totalWords}</strong> 个单词、<strong style="color:var(--accent-hover)">${totalSentences}</strong> 个例句。</p>
+      <h2>${tb.title}</h2>
+      <p>通过打字练习强化英语单词和句子的记忆。<br>
+      共 <strong style="color:var(--accent-hover)">${units.length}</strong> 章、<strong style="color:var(--accent-hover)">${units.reduce((s,c)=>s+c.units.length,0)}</strong> 个单元、<strong style="color:var(--accent-hover)">${totalWords}</strong> 个单词、<strong style="color:var(--accent-hover)">${totalSentences}</strong> 个例句。</p>
       <div class="welcome-features">
         <div class="feature-card">
           <div class="icon">\u2328\ufe0f</div>
@@ -3918,8 +4039,8 @@ function resumeLearning(ci, ui, mode, startIndex) {
   currentMode = mode || 'word';
   isWrongMode = false;
   updateModeTabs();
-  
-  const chapter = bookData[ci];
+
+  const chapter = getCurrentUnits()[ci];
   const unit = chapter.units[ui];
   
   document.querySelectorAll('.unit-item').forEach(el => el.classList.remove('active'));
