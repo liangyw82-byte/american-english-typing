@@ -966,6 +966,7 @@ button {
 <div class="sidebar" id="sidebar">
   <div class="sidebar-header">
     <div class="textbook-selector" id="textbook-selector"></div>
+    <div class="textbook-selector" id="volume-selector"></div>
     <h1 id="sidebar-title">美国人每天说的话</h1>
     <p id="sidebar-subtitle">打字练习</p>
   </div>
@@ -2151,6 +2152,1400 @@ const textbooks = [
   }
   ]
 }
+,
+{
+  id: "nce",
+  title: "新概念英语",
+  subtitle: "New Concept English",
+  icon: "📚",
+  hasVolumes: true,
+  volumes: [
+    {
+      id: "nce1",
+      title: "Book 1",
+      titleCn: "第一册",
+      units: [
+        {
+          chapter: "Lessons 1-10", title: "入门篇 Lessons 1-10",
+          units: [
+            {
+              title: "Lesson 1 Excuse me! 对不起",
+              subtopics: ["基本问候", "确认物品归属"],
+              words: [
+                {word:"excuse", phonetic:"/ɪkˈskjuːz/", meaning:"原谅"},
+                {word:"me", phonetic:"/miː/", meaning:"我(宾格)"},
+                {word:"yes", phonetic:"/jes/", meaning:"是的"},
+                {word:"is", phonetic:"/ɪz/", meaning:"是"},
+                {word:"this", phonetic:"/ðɪs/", meaning:"这"},
+                {word:"your", phonetic:"/jɔːr/", meaning:"你的"},
+                {word:"handbag", phonetic:"/ˈhændbæɡ/", meaning:"手提包"},
+                {word:"pardon", phonetic:"/ˈpɑːrdn/", meaning:"原谅；再说一遍"},
+                {word:"thank you", phonetic:"/θæŋk juː/", meaning:"感谢你"},
+                {word:"very much", phonetic:"/ˈveri mʌtʃ/", meaning:"非常"}
+              ],
+              sentences: [
+                {en:"Excuse me!", cn:"对不起！"},
+                {en:"Yes?", cn:"什么事？"},
+                {en:"Is this your handbag?", cn:"这是您的手提包吗？"},
+                {en:"Pardon?", cn:"对不起，请再说一遍？"},
+                {en:"Is this your handbag?", cn:"这是您的手提包吗？"},
+                {en:"Yes, it is.", cn:"是的，是我的。"},
+                {en:"Thank you very much.", cn:"非常感谢。"}
+              ]
+            },
+            {
+              title: "Lesson 2 Is this your...? 这是你的...吗？",
+              subtopics: ["确认物品", "常见名词"],
+              words: [
+                {word:"pen", phonetic:"/pen/", meaning:"钢笔"},
+                {word:"pencil", phonetic:"/ˈpensl/", meaning:"铅笔"},
+                {word:"book", phonetic:"/bʊk/", meaning:"书"},
+                {word:"watch", phonetic:"/wɑːtʃ/", meaning:"手表"},
+                {word:"coat", phonetic:"/koʊt/", meaning:"外套"},
+                {word:"dress", phonetic:"/dres/", meaning:"连衣裙"},
+                {word:"shirt", phonetic:"/ʃɜːrt/", meaning:"衬衫"},
+                {word:"car", phonetic:"/kɑːr/", meaning:"汽车"},
+                {word:"house", phonetic:"/haʊs/", meaning:"房子"},
+                {word:"umbrella", phonetic:"/ʌmˈbrelə/", meaning:"雨伞"}
+              ],
+              sentences: [
+                {en:"Is this your pen?", cn:"这是你的钢笔吗？"},
+                {en:"Is this your pencil?", cn:"这是你的铅笔吗？"},
+                {en:"Is this your book?", cn:"这是你的书吗？"},
+                {en:"Is this your watch?", cn:"这是你的手表吗？"},
+                {en:"Is this your coat?", cn:"这是你的外套吗？"},
+                {en:"Is this your dress?", cn:"这是你的连衣裙吗？"},
+                {en:"Is this your shirt?", cn:"这是你的衬衫吗？"},
+                {en:"Is this your car?", cn:"这是你的汽车吗？"},
+                {en:"Is this your house?", cn:"这是你的房子吗？"}
+              ]
+            },
+            {
+              title: "Lesson 3 Sorry, sir. 对不起，先生。",
+              subtopics: ["礼貌用语", "课堂用语"],
+              words: [
+                {word:"sorry", phonetic:"/ˈsɑːri/", meaning:"对不起"},
+                {word:"sir", phonetic:"/sɜːr/", meaning:"先生"},
+                {word:"umbrella", phonetic:"/ʌmˈbrelə/", meaning:"雨伞"},
+                {word:"school", phonetic:"/skuːl/", meaning:"学校"},
+                {word:"teacher", phonetic:"/ˈtiːtʃər/", meaning:"老师"},
+                {word:"son", phonetic:"/sʌn/", meaning:"儿子"},
+                {word:"daughter", phonetic:"/ˈdɔːtər/", meaning:"女儿"},
+                {word:"please", phonetic:"/pliːz/", meaning:"请"},
+                {word:"here", phonetic:"/hɪr/", meaning:"这里"},
+                {word:"my", phonetic:"/maɪ/", meaning:"我的"}
+              ],
+              sentences: [
+                {en:"My coat and my umbrella, please.", cn:"请把我的外套和雨伞给我。"},
+                {en:"Here is my umbrella.", cn:"这是我的雨伞。"},
+                {en:"Here is your umbrella and your coat.", cn:"这是您的雨伞和外套。"},
+                {en:"This is not my umbrella.", cn:"这不是我的雨伞。"},
+                {en:"Sorry, sir.", cn:"对不起，先生。"},
+                {en:"Is this your umbrella?", cn:"这是您的雨伞吗？"},
+                {en:"Yes, it is.", cn:"是的，是我的。"}
+              ]
+            },
+            {
+              title: "Lesson 5 Nice to meet you. 很高兴见到你。",
+              subtopics: ["国籍", "问候"],
+              words: [
+                {word:"nice", phonetic:"/naɪs/", meaning:"美好的"},
+                {word:"meet", phonetic:"/miːt/", meaning:"遇见"},
+                {word:"Chinese", phonetic:"/ˌtʃaɪˈniːz/", meaning:"中国人"},
+                {word:"French", phonetic:"/frentʃ/", meaning:"法国人"},
+                {word:"German", phonetic:"/ˈdʒɜːrmən/", meaning:"德国人"},
+                {word:"Japanese", phonetic:"/ˌdʒæpəˈniːz/", meaning:"日本人"},
+                {word:"Korean", phonetic:"/kəˈriːən/", meaning:"韩国人"},
+                {word:"English", phonetic:"/ˈɪŋɡlɪʃ/", meaning:"英国人"},
+                {word:"American", phonetic:"/əˈmerɪkən/", meaning:"美国人"},
+                {word:"Italian", phonetic:"/ɪˈtæliən/", meaning:"意大利人"}
+              ],
+              sentences: [
+                {en:"Good morning.", cn:"早上好。"},
+                {en:"Nice to meet you.", cn:"很高兴见到你。"},
+                {en:"Are you Chinese?", cn:"你是中国人吗？"},
+                {en:"I'm Japanese.", cn:"我是日本人。"},
+                {en:"She is French.", cn:"她是法国人。"},
+                {en:"He is German.", cn:"他是德国人。"},
+                {en:"We are American.", cn:"我们是美国人。"},
+                {en:"Nice to meet you, too.", cn:"我也很高兴见到你。"}
+              ]
+            },
+            {
+              title: "Lesson 7 Are you a teacher? 你是老师吗？",
+              subtopics: ["职业", "自我介绍"],
+              words: [
+                {word:"name", phonetic:"/neɪm/", meaning:"名字"},
+                {word:"nationality", phonetic:"/ˌnæʃəˈnæləti/", meaning:"国籍"},
+                {word:"job", phonetic:"/dʒɑːb/", meaning:"工作"},
+                {word:"keyboard", phonetic:"/ˈkiːbɔːrd/", meaning:"键盘"},
+                {word:"operator", phonetic:"/ˈɑːpəreɪtər/", meaning:"操作员"},
+                {word:"engineer", phonetic:"/ˌendʒɪˈnɪr/", meaning:"工程师"},
+                {word:"policeman", phonetic:"/pəˈliːsmən/", meaning:"警察"},
+                {word:"policewoman", phonetic:"/pəˈliːswʊmən/", meaning:"女警察"},
+                {word:"taxi driver", phonetic:"/ˈtæksi ˈdraɪvər/", meaning:"出租车司机"},
+                {word:"postman", phonetic:"/ˈpoʊstmən/", meaning:"邮递员"},
+                {word:"nurse", phonetic:"/nɜːrs/", meaning:"护士"},
+                {word:"mechanic", phonetic:"/məˈkænɪk/", meaning:"机械师"},
+                {word:"hairdresser", phonetic:"/ˈherdresər/", meaning:"理发师"},
+                {word:"housewife", phonetic:"/ˈhaʊswaɪf/", meaning:"家庭主妇"},
+                {word:"milkman", phonetic:"/ˈmɪlkmən/", meaning:"送奶工"}
+              ],
+              sentences: [
+                {en:"Are you a teacher?", cn:"你是老师吗？"},
+                {en:"What's your job?", cn:"你是做什么工作的？"},
+                {en:"I'm a keyboard operator.", cn:"我是电脑录入员。"},
+                {en:"What nationality are you?", cn:"你是哪国人？"},
+                {en:"I'm an engineer.", cn:"我是一名工程师。"},
+                {en:"He is a policeman.", cn:"他是一名警察。"},
+                {en:"She is a nurse.", cn:"她是一名护士。"},
+                {en:"My name is Robert.", cn:"我叫罗伯特。"}
+              ]
+            },
+            {
+              title: "Lesson 9 How are you today? 今天好吗？",
+              subtopics: ["健康状况", "问候语"],
+              words: [
+                {word:"how", phonetic:"/haʊ/", meaning:"如何；怎样"},
+                {word:"today", phonetic:"/təˈdeɪ/", meaning:"今天"},
+                {word:"fine", phonetic:"/faɪn/", meaning:"好的"},
+                {word:"thanks", phonetic:"/θæŋks/", meaning:"谢谢"},
+                {word:"goodbye", phonetic:"/ɡʊdˈbaɪ/", meaning:"再见"},
+                {word:"see", phonetic:"/siː/", meaning:"看见"},
+                {word:"well", phonetic:"/wel/", meaning:"健康的"},
+                {word:"nice", phonetic:"/naɪs/", meaning:"美好的"},
+                {word:"meet", phonetic:"/miːt/", meaning:"遇见"},
+                {word:"too", phonetic:"/tuː/", meaning:"也"}
+              ],
+              sentences: [
+                {en:"How are you today?", cn:"你今天好吗？"},
+                {en:"I'm fine, thanks.", cn:"我很好，谢谢。"},
+                {en:"How is Tony?", cn:"托尼好吗？"},
+                {en:"He's fine, thanks.", cn:"他很好，谢谢。"},
+                {en:"Goodbye, Helen.", cn:"再见，海伦。"},
+                {en:"Nice to see you.", cn:"很高兴见到你。"},
+                {en:"Nice to see you, too.", cn:"我也很高兴见到你。"}
+              ]
+            },
+            {
+              title: "Lesson 10 Look at... 看...",
+              subtopics: ["形容词", "描述外貌"],
+              words: [
+                {word:"fat", phonetic:"/fæt/", meaning:"胖的"},
+                {word:"thin", phonetic:"/θɪn/", meaning:"瘦的"},
+                {word:"tall", phonetic:"/tɔːl/", meaning:"高的"},
+                {word:"short", phonetic:"/ʃɔːrt/", meaning:"矮的"},
+                {word:"dirty", phonetic:"/ˈdɜːrti/", meaning:"脏的"},
+                {word:"clean", phonetic:"/kliːn/", meaning:"干净的"},
+                {word:"hot", phonetic:"/hɑːt/", meaning:"热的"},
+                {word:"cold", phonetic:"/koʊld/", meaning:"冷的"},
+                {word:"old", phonetic:"/oʊld/", meaning:"老的"},
+                {word:"young", phonetic:"/jʌŋ/", meaning:"年轻的"},
+                {word:"busy", phonetic:"/ˈbɪzi/", meaning:"忙碌的"},
+                {word:"lazy", phonetic:"/ˈleɪzi/", meaning:"懒惰的"},
+                {word:"look", phonetic:"/lʊk/", meaning:"看"},
+                {word:"woman", phonetic:"/ˈwʊmən/", meaning:"女人"},
+                {word:"man", phonetic:"/mæn/", meaning:"男人"}
+              ],
+              sentences: [
+                {en:"Look at that man.", cn:"看那个男人。"},
+                {en:"He is tall.", cn:"他很高。"},
+                {en:"Look at that woman.", cn:"看那个女人。"},
+                {en:"She is short.", cn:"她很矮。"},
+                {en:"Look at that boy.", cn:"看那个男孩。"},
+                {en:"He is thin.", cn:"他很瘦。"},
+                {en:"Look at that girl.", cn:"看那个女孩。"},
+                {en:"She is fat.", cn:"她很胖。"}
+              ]
+            },
+            {
+              title: "Lesson 11 Is this your shirt? 这是你的衬衫吗？",
+              subtopics: ["物主代词", "衣物"],
+              words: [
+                {word:"whose", phonetic:"/huːz/", meaning:"谁的"},
+                {word:"shirt", phonetic:"/ʃɜːrt/", meaning:"衬衫"},
+                {word:"blue", phonetic:"/bluː/", meaning:"蓝色的"},
+                {word:"perhaps", phonetic:"/pərˈhæps/", meaning:"也许"},
+                {word:"white", phonetic:"/waɪt/", meaning:"白色的"},
+                {word:"catch", phonetic:"/kætʃ/", meaning:"抓住"},
+                {word:"here", phonetic:"/hɪr/", meaning:"这里"},
+                {word:"his", phonetic:"/hɪz/", meaning:"他的"},
+                {word:"her", phonetic:"/hɜːr/", meaning:"她的"}
+              ],
+              sentences: [
+                {en:"Whose shirt is that?", cn:"那是谁的衬衫？"},
+                {en:"Is this your shirt, Dave?", cn:"戴夫，这是你的衬衫吗？"},
+                {en:"No, sir. It's not my shirt.", cn:"不是的，先生。这不是我的衬衫。"},
+                {en:"This is my shirt.", cn:"这是我的衬衫。"},
+                {en:"Perhaps it is, sir.", cn:"也许是吧，先生。"},
+                {en:"Catch!", cn:"接住！"},
+                {en:"Thank you, sir.", cn:"谢谢您，先生。"}
+              ]
+            },
+            {
+              title: "Lesson 13 A new dress 一件新连衣裙",
+              subtopics: ["颜色", "服装"],
+              words: [
+                {word:"color", phonetic:"/ˈkʌlər/", meaning:"颜色"},
+                {word:"green", phonetic:"/ɡriːn/", meaning:"绿色的"},
+                {word:"come", phonetic:"/kʌm/", meaning:"来"},
+                {word:"upstairs", phonetic:"/ˌʌpˈsterz/", meaning:"楼上"},
+                {word:"smart", phonetic:"/smɑːrt/", meaning:"时髦的"},
+                {word:"hat", phonetic:"/hæt/", meaning:"帽子"},
+                {word:"same", phonetic:"/seɪm/", meaning:"相同的"},
+                {word:"lovely", phonetic:"/ˈlʌvli/", meaning:"可爱的"},
+                {word:"dress", phonetic:"/dres/", meaning:"连衣裙"},
+                {word:"new", phonetic:"/nuː/", meaning:"新的"}
+              ],
+              sentences: [
+                {en:"What color is your new dress?", cn:"你的新连衣裙是什么颜色的？"},
+                {en:"It's green.", cn:"是绿色的。"},
+                {en:"Come upstairs and see it.", cn:"到楼上来看吧。"},
+                {en:"It's a lovely dress.", cn:"这是一件很好看的连衣裙。"},
+                {en:"It's the same color.", cn:"是一样的颜色。"},
+                {en:"That is a lovely hat!", cn:"那是一顶可爱的帽子！"},
+                {en:"It's smart.", cn:"很时髦。"}
+              ]
+            },
+            {
+              title: "Lesson 15 Your passport, please. 请出示护照。",
+              subtopics: ["海关", "旅游"],
+              words: [
+                {word:"customs", phonetic:"/ˈkʌstəmz/", meaning:"海关"},
+                {word:"officer", phonetic:"/ˈɑːfɪsər/", meaning:"官员"},
+                {word:"Danish", phonetic:"/ˈdeɪnɪʃ/", meaning:"丹麦人"},
+                {word:"friend", phonetic:"/frend/", meaning:"朋友"},
+                {word:"Norwegian", phonetic:"/nɔːrˈwiːdʒən/", meaning:"挪威人"},
+                {word:"passport", phonetic:"/ˈpæspɔːrt/", meaning:"护照"},
+                {word:"brown", phonetic:"/braʊn/", meaning:"棕色的"},
+                {word:"tourist", phonetic:"/ˈtʊrɪst/", meaning:"游客"},
+                {word:"Russian", phonetic:"/ˈrʌʃn/", meaning:"俄国人"},
+                {word:"Dutch", phonetic:"/dʌtʃ/", meaning:"荷兰人"}
+              ],
+              sentences: [
+                {en:"Are you Swedish?", cn:"你们是瑞典人吗？"},
+                {en:"No, we are not.", cn:"不，我们不是。"},
+                {en:"We are Danish.", cn:"我们是丹麦人。"},
+                {en:"Are your friends Danish, too?", cn:"你们的朋友也是丹麦人吗？"},
+                {en:"They are Norwegian.", cn:"他们是挪威人。"},
+                {en:"Your passports, please.", cn:"请出示你们的护照。"},
+                {en:"Are you tourists?", cn:"你们是游客吗？"},
+                {en:"Yes, we are tourists.", cn:"是的，我们是游客。"}
+              ]
+            }
+          ]
+        },
+        {
+          chapter: "Lessons 11-20", title: "进阶篇 Lessons 11-20",
+          units: [
+            {
+              title: "Lesson 17 How do you do? 你好！",
+              subtopics: ["介绍认识", "职业"],
+              words: [
+                {word:"employee", phonetic:"/ɪmˈplɔɪiː/", meaning:"雇员"},
+                {word:"hard-working", phonetic:"/ˈhɑːrdˈwɜːrkɪŋ/", meaning:"勤奋的"},
+                {word:"sales rep", phonetic:"/seɪlz rep/", meaning:"销售代表"},
+                {word:"office", phonetic:"/ˈɑːfɪs/", meaning:"办公室"},
+                {word:"assistant", phonetic:"/əˈsɪstənt/", meaning:"助手"},
+                {word:"job", phonetic:"/dʒɑːb/", meaning:"工作"},
+                {word:"how do you do", phonetic:"/haʊ duː juː duː/", meaning:"你好(初次见面)"}
+              ],
+              sentences: [
+                {en:"How do you do?", cn:"你好！"},
+                {en:"This is Miss Sophie Dupont.", cn:"这位是索菲娅·杜邦小姐。"},
+                {en:"She is a new employee.", cn:"她是一名新雇员。"},
+                {en:"She is a sales rep.", cn:"她是一名销售代表。"},
+                {en:"She is very hard-working.", cn:"她非常勤奋。"},
+                {en:"What is her job?", cn:"她是做什么工作的？"},
+                {en:"She is an office assistant.", cn:"她是办公室助理。"}
+              ]
+            },
+            {
+              title: "Lesson 19 Tired and thirsty 又累又渴",
+              subtopics: ["感受", "饮料"],
+              words: [
+                {word:"tired", phonetic:"/ˈtaɪərd/", meaning:"累的"},
+                {word:"thirsty", phonetic:"/ˈθɜːrsti/", meaning:"渴的"},
+                {word:"mum", phonetic:"/mʌm/", meaning:"妈妈"},
+                {word:"sit down", phonetic:"/sɪt daʊn/", meaning:"坐下"},
+                {word:"right", phonetic:"/raɪt/", meaning:"好的；对的"},
+                {word:"ice cream", phonetic:"/aɪs kriːm/", meaning:"冰淇淋"},
+                {word:"boy", phonetic:"/bɔɪ/", meaning:"男孩"},
+                {word:"there", phonetic:"/ðer/", meaning:"那里"}
+              ],
+              sentences: [
+                {en:"What's the matter, children?", cn:"孩子们，怎么了？"},
+                {en:"We're tired and thirsty.", cn:"我们又累又渴。"},
+                {en:"Sit down here.", cn:"坐在这里吧。"},
+                {en:"Are you all right now?", cn:"你们现在好些了吗？"},
+                {en:"No, we aren't.", cn:"不，没有。"},
+                {en:"Look! There's an ice cream man.", cn:"看！那里有个卖冰淇淋的。"},
+                {en:"Two ice creams, please.", cn:"请来两个冰淇淋。"}
+              ]
+            },
+            {
+              title: "Lesson 21 Which book? 哪一本书？",
+              subtopics: ["选择", "给与"],
+              words: [
+                {word:"which", phonetic:"/wɪtʃ/", meaning:"哪个"},
+                {word:"book", phonetic:"/bʊk/", meaning:"书"},
+                {word:"give", phonetic:"/ɡɪv/", meaning:"给"},
+                {word:"one", phonetic:"/wʌn/", meaning:"一个"},
+                {word:"empty", phonetic:"/ˈempti/", meaning:"空的"},
+                {word:"full", phonetic:"/fʊl/", meaning:"满的"},
+                {word:"large", phonetic:"/lɑːrdʒ/", meaning:"大的"},
+                {word:"small", phonetic:"/smɔːl/", meaning:"小的"},
+                {word:"sharp", phonetic:"/ʃɑːrp/", meaning:"锋利的"},
+                {word:"blunt", phonetic:"/blʌnt/", meaning:"钝的"}
+              ],
+              sentences: [
+                {en:"Give me a book, please.", cn:"请给我一本书。"},
+                {en:"Which book? This one?", cn:"哪一本？这本吗？"},
+                {en:"No, not that one. The red one.", cn:"不，不是那本。红色的那本。"},
+                {en:"This one?", cn:"这本吗？"},
+                {en:"Yes, please.", cn:"是的，谢谢。"},
+                {en:"Here you are.", cn:"给你。"},
+                {en:"Thank you.", cn:"谢谢。"}
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "nce2",
+      title: "Book 2",
+      titleCn: "第二册",
+      units: [
+        {
+          chapter: "Lessons 1-10", title: "实践与进步 Lessons 1-10",
+          units: [
+            {
+              title: "Lesson 1 A Private Conversation 私人谈话",
+              subtopics: ["看戏", "社交礼仪"],
+              words: [
+                {word:"private", phonetic:"/ˈpraɪvət/", meaning:"私人的"},
+                {word:"conversation", phonetic:"/ˌkɑːnvərˈseɪʃn/", meaning:"谈话"},
+                {word:"theatre", phonetic:"/ˈθɪətər/", meaning:"剧院"},
+                {word:"seat", phonetic:"/siːt/", meaning:"座位"},
+                {word:"play", phonetic:"/pleɪ/", meaning:"戏剧"},
+                {word:"loudly", phonetic:"/ˈlaʊdli/", meaning:"大声地"},
+                {word:"angry", phonetic:"/ˈæŋɡri/", meaning:"生气的"},
+                {word:"angrily", phonetic:"/ˈæŋɡrəli/", meaning:"生气地"},
+                {word:"business", phonetic:"/ˈbɪznəs/", meaning:"事；生意"},
+                {word:"rudely", phonetic:"/ˈruːdli/", meaning:"粗鲁地"},
+                {word:"attention", phonetic:"/əˈtenʃn/", meaning:"注意"},
+                {word:"bear", phonetic:"/ber/", meaning:"忍受"}
+              ],
+              sentences: [
+                {en:"Last week I went to the theatre.", cn:"上周我去了剧院。"},
+                {en:"I had a very good seat.", cn:"我有一个很好的座位。"},
+                {en:"The play was very interesting.", cn:"那部戏很有趣。"},
+                {en:"I did not enjoy it.", cn:"我却无法欣赏。"},
+                {en:"A young man and a young woman were sitting behind me.", cn:"一对年轻男女坐在我后面。"},
+                {en:"They were talking loudly.", cn:"他们大声地说话。"},
+                {en:"I got very angry.", cn:"我非常生气。"},
+                {en:"I could not hear the actors.", cn:"我听不见演员的台词。"},
+                {en:"It's none of your business.", cn:"不关你的事。"},
+                {en:"This is a private conversation!", cn:"这是私人谈话！"}
+              ]
+            },
+            {
+              title: "Lesson 2 Breakfast or Lunch? 早餐还是午餐？",
+              subtopics: ["日常作息", "做客"],
+              words: [
+                {word:"until", phonetic:"/ʌnˈtɪl/", meaning:"直到"},
+                {word:"outside", phonetic:"/ˌaʊtˈsaɪd/", meaning:"外面"},
+                {word:"ring", phonetic:"/rɪŋ/", meaning:"(铃)响"},
+                {word:"aunt", phonetic:"/ænt/", meaning:"姑母；姨母"},
+                {word:"repeat", phonetic:"/rɪˈpiːt/", meaning:"重复"},
+                {word:"breakfast", phonetic:"/ˈbrekfəst/", meaning:"早餐"},
+                {word:"lunch", phonetic:"/lʌntʃ/", meaning:"午餐"},
+                {word:"stay", phonetic:"/steɪ/", meaning:"待；留"}
+              ],
+              sentences: [
+                {en:"It was Sunday.", cn:"那天是星期天。"},
+                {en:"I never get up early on Sundays.", cn:"星期天我从不早起。"},
+                {en:"I sometimes stay in bed until lunchtime.", cn:"我有时在床上待到午餐时间。"},
+                {en:"Last Sunday I got up very late.", cn:"上周日我起得很晚。"},
+                {en:"I looked out of the window.", cn:"我向窗外看去。"},
+                {en:"It was dark outside.", cn:"外面天很黑。"},
+                {en:"What a day!", cn:"糟糕的天气！"},
+                {en:"I've just arrived by train.", cn:"我刚坐火车到。"},
+                {en:"I'm having breakfast.", cn:"我正在吃早饭。"},
+                {en:"Do you always get up so late?", cn:"你总是起得这么晚吗？"}
+              ]
+            },
+            {
+              title: "Lesson 3 Please Send Me a Card 请给我寄一张明信片",
+              subtopics: ["旅行", "邮寄"],
+              words: [
+                {word:"send", phonetic:"/send/", meaning:"寄；发送"},
+                {word:"Italy", phonetic:"/ˈɪtəli/", meaning:"意大利"},
+                {word:"museum", phonetic:"/mjuːˈziːəm/", meaning:"博物馆"},
+                {word:"postcard", phonetic:"/ˈpoʊstkɑːrd/", meaning:"明信片"},
+                {word:"waiter", phonetic:"/ˈweɪtər/", meaning:"服务员"},
+                {word:"lend", phonetic:"/lend/", meaning:"借给"},
+                {word:"whole", phonetic:"/hoʊl/", meaning:"整个的"},
+                {word:"single", phonetic:"/ˈsɪŋɡl/", meaning:"唯一的；单一的"},
+                {word:"decision", phonetic:"/dɪˈsɪʒn/", meaning:"决定"},
+                {word:"spoil", phonetic:"/spɔɪl/", meaning:"使索然无味"}
+              ],
+              sentences: [
+                {en:"Postcards always spoil my holidays.", cn:"明信片总是破坏我的假期。"},
+                {en:"Last summer I went to Italy.", cn:"去年夏天我去了意大利。"},
+                {en:"I visited museums and sat in public gardens.", cn:"我参观了博物馆，坐在公园里。"},
+                {en:"A friendly waiter taught me a few words of Italian.", cn:"一位友好的服务员教了我几句意大利语。"},
+                {en:"Then he lent me a book.", cn:"然后他借给我一本书。"},
+                {en:"I read a few lines.", cn:"我读了几行。"},
+                {en:"But I did not understand a word.", cn:"但我一个字也不懂。"},
+                {en:"Every day I thought about postcards.", cn:"我每天都想着明信片的事。"},
+                {en:"I passed the whole day in my room.", cn:"我在房间里待了一整天。"},
+                {en:"I did not write a single card!", cn:"我一张明信片也没写！"}
+              ]
+            },
+            {
+              title: "Lesson 4 An Exciting Trip 激动人心的旅行",
+              subtopics: ["旅行", "通信"],
+              words: [
+                {word:"exciting", phonetic:"/ɪkˈsaɪtɪŋ/", meaning:"令人激动的"},
+                {word:"receive", phonetic:"/rɪˈsiːv/", meaning:"收到"},
+                {word:"firm", phonetic:"/fɜːrm/", meaning:"公司"},
+                {word:"different", phonetic:"/ˈdɪfərənt/", meaning:"不同的"},
+                {word:"centre", phonetic:"/ˈsentər/", meaning:"中心"},
+                {word:"abroad", phonetic:"/əˈbrɔːd/", meaning:"在国外"},
+                {word:"Australia", phonetic:"/ɑːˈstreɪliə/", meaning:"澳大利亚"},
+                {word:"engineer", phonetic:"/ˌendʒɪˈnɪr/", meaning:"工程师"}
+              ],
+              sentences: [
+                {en:"I have just received a letter from my brother, Tim.", cn:"我刚收到弟弟蒂姆的一封信。"},
+                {en:"He is in Australia.", cn:"他在澳大利亚。"},
+                {en:"He has been there for six months.", cn:"他在那里已经六个月了。"},
+                {en:"Tim is an engineer.", cn:"蒂姆是一名工程师。"},
+                {en:"He is working for a big firm.", cn:"他在一家大公司工作。"},
+                {en:"He has already visited a great number of different places.", cn:"他已经去过许多不同的地方。"},
+                {en:"He has just bought an Australian car.", cn:"他刚买了一辆澳大利亚汽车。"},
+                {en:"He has gone to Alice Springs.", cn:"他去了爱丽斯泉。"},
+                {en:"My brother has never been abroad before.", cn:"我弟弟以前从未出过国。"},
+                {en:"He is finding this trip very exciting.", cn:"他觉得这次旅行非常激动人心。"}
+              ]
+            },
+            {
+              title: "Lesson 5 No Wrong Numbers 无错号之虞",
+              subtopics: ["通信", "解决方法"],
+              words: [
+                {word:"pigeon", phonetic:"/ˈpɪdʒɪn/", meaning:"鸽子"},
+                {word:"message", phonetic:"/ˈmesɪdʒ/", meaning:"信息"},
+                {word:"cover", phonetic:"/ˈkʌvər/", meaning:"覆盖；走过"},
+                {word:"distance", phonetic:"/ˈdɪstəns/", meaning:"距离"},
+                {word:"request", phonetic:"/rɪˈkwest/", meaning:"要求"},
+                {word:"spare", phonetic:"/sper/", meaning:"备用的"},
+                {word:"service", phonetic:"/ˈsɜːrvɪs/", meaning:"服务"},
+                {word:"garage", phonetic:"/ɡəˈrɑːʒ/", meaning:"车库"}
+              ],
+              sentences: [
+                {en:"Mr. James Scott has a garage in Silbury.", cn:"詹姆斯·斯科特先生在锡尔伯里有个车库。"},
+                {en:"His garage is in Pinhurst.", cn:"他的车库在平赫斯特。"},
+                {en:"Pinhurst is only five miles from Silbury.", cn:"平赫斯特离锡尔伯里只有五英里。"},
+                {en:"Mr. Scott cannot get a telephone for his new garage.", cn:"斯科特先生无法为新车库装电话。"},
+                {en:"He has just bought twelve pigeons.", cn:"他刚买了十二只鸽子。"},
+                {en:"Yesterday, a pigeon carried the first message from Pinhurst to Silbury.", cn:"昨天，一只鸽子从平赫斯特带了第一条信息到锡尔伯里。"},
+                {en:"The bird covered the distance in three minutes.", cn:"这只鸟三分钟就飞完了全程。"},
+                {en:"Up to now, Mr. Scott has sent a great many requests for spare parts.", cn:"到目前为止，斯科特先生已经发送了大量备件要求。"},
+                {en:"He has begun his own private telephone service.", cn:"他开始了自己的私人电话服务。"}
+              ]
+            },
+            {
+              title: "Lesson 6 Percy Buttons 珀西·巴顿斯",
+              subtopics: ["邻里", "日常生活"],
+              words: [
+                {word:"beggar", phonetic:"/ˈbeɡər/", meaning:"乞丐"},
+                {word:"food", phonetic:"/fuːd/", meaning:"食物"},
+                {word:"cheese", phonetic:"/tʃiːz/", meaning:"奶酪"},
+                {word:"beer", phonetic:"/bɪr/", meaning:"啤酒"},
+                {word:"neighbour", phonetic:"/ˈneɪbər/", meaning:"邻居"},
+                {word:"pocket", phonetic:"/ˈpɑːkɪt/", meaning:"口袋"},
+                {word:"call", phonetic:"/kɔːl/", meaning:"拜访；打电话"},
+                {word:"meal", phonetic:"/miːl/", meaning:"一顿饭"},
+                {word:"piece", phonetic:"/piːs/", meaning:"块；片"}
+              ],
+              sentences: [
+                {en:"I have just moved to a house in Bridge Street.", cn:"我刚搬进大桥街的一所房子。"},
+                {en:"Yesterday a beggar knocked at my door.", cn:"昨天一个乞丐敲我的门。"},
+                {en:"He asked me for a meal and a glass of beer.", cn:"他向我要一顿饭和一杯啤酒。"},
+                {en:"In return for this, the beggar stood on his head.", cn:"作为回报，乞丐倒立着。"},
+                {en:"He sang songs.", cn:"他唱了几首歌。"},
+                {en:"I gave him a meal.", cn:"我给了他一顿饭。"},
+                {en:"He ate the food and drank the beer.", cn:"他吃了食物，喝了啤酒。"},
+                {en:"Then he put a piece of cheese in his pocket.", cn:"然后他把一块奶酪放进口袋里。"},
+                {en:"He calls at every house in the street once a month.", cn:"他每月来这条街上的每户人家一次。"},
+                {en:"He always asks for a meal and a glass of beer.", cn:"他总是要一顿饭和一杯啤酒。"}
+              ]
+            },
+            {
+              title: "Lesson 7 Too Late 为时太晚",
+              subtopics: ["机场", "侦探"],
+              words: [
+                {word:"detective", phonetic:"/dɪˈtektɪv/", meaning:"侦探"},
+                {word:"airport", phonetic:"/ˈerpɔːrt/", meaning:"机场"},
+                {word:"diamond", phonetic:"/ˈdaɪəmənd/", meaning:"钻石"},
+                {word:"steal", phonetic:"/stiːl/", meaning:"偷"},
+                {word:"precious", phonetic:"/ˈpreʃəs/", meaning:"珍贵的"},
+                {word:"sand", phonetic:"/sænd/", meaning:"沙子"},
+                {word:"main", phonetic:"/meɪn/", meaning:"主要的"},
+                {word:"airfield", phonetic:"/ˈerfiːld/", meaning:"停机坪"},
+                {word:"guard", phonetic:"/ɡɑːrd/", meaning:"守卫"},
+                {word:"parcel", phonetic:"/ˈpɑːrsl/", meaning:"包裹"}
+              ],
+              sentences: [
+                {en:"The plane was late and detectives were waiting at the airport all morning.", cn:"飞机晚点了，侦探们在机场等了整个上午。"},
+                {en:"They were expecting a valuable parcel of diamonds from South Africa.", cn:"他们在等一个来自南非的贵重钻石包裹。"},
+                {en:"A few hours earlier, someone had told the police that thieves would try to steal the diamonds.", cn:"几小时前，有人告诉警察小偷会试图偷走钻石。"},
+                {en:"When the plane arrived, some of the detectives were waiting inside the main building.", cn:"飞机到达时，一些侦探在主楼内等候。"},
+                {en:"Others were waiting on the airfield.", cn:"其他人在停机坪等候。"},
+                {en:"Two men took the parcel off the plane.", cn:"两个人把包裹从飞机上拿下来。"},
+                {en:"To their surprise, the precious parcel was full of stones and sand!", cn:"令他们惊讶的是，贵重包裹里全是石头和沙子！"}
+              ]
+            },
+            {
+              title: "Lesson 8 The Best and the Worst 最好的和最差的",
+              subtopics: ["园艺", "竞争"],
+              words: [
+                {word:"garden", phonetic:"/ˈɡɑːrdn/", meaning:"花园"},
+                {word:"competition", phonetic:"/ˌkɑːmpəˈtɪʃn/", meaning:"比赛"},
+                {word:"neat", phonetic:"/niːt/", meaning:"整洁的"},
+                {word:"pool", phonetic:"/puːl/", meaning:"水池"},
+                {word:"wooden", phonetic:"/ˈwʊdn/", meaning:"木制的"},
+                {word:"everything", phonetic:"/ˈevriθɪŋ/", meaning:"一切"},
+                {word:"win", phonetic:"/wɪn/", meaning:"赢得"},
+                {word:"prize", phonetic:"/praɪz/", meaning:"奖品"}
+              ],
+              sentences: [
+                {en:"Joe Sanders has the most beautiful garden in our town.", cn:"乔·桑德斯有我们镇上最美的花园。"},
+                {en:"Nearly everybody enters for 'The Nicest Garden Competition' each year.", cn:"几乎每个人都参加每年的'最美花园比赛'。"},
+                {en:"Joe wins every time.", cn:"乔每次都赢。"},
+                {en:"Bill Frith's garden is larger than Joe's.", cn:"比尔·弗里斯的花园比乔的大。"},
+                {en:"Bill works harder than Joe and grows more flowers and vegetables.", cn:"比尔比乔更努力，种了更多的花和蔬菜。"},
+                {en:"But Joe's garden is more interesting.", cn:"但乔的花园更有趣。"},
+                {en:"He has made neat paths.", cn:"他修了整洁的小路。"},
+                {en:"He has built a wooden bridge over a pool.", cn:"他在水池上建了一座木桥。"},
+                {en:"I like gardens too, but I do not like hard work.", cn:"我也喜欢花园，但我不喜欢辛苦劳动。"},
+                {en:"I always win a little prize for the worst garden in the town!", cn:"我总是因镇上最差的花园而获得一个小奖！"}
+              ]
+            },
+            {
+              title: "Lesson 9 A Cold Welcome 冷遇",
+              subtopics: ["节日", "时间"],
+              words: [
+                {word:"Wednesday", phonetic:"/ˈwenzdeɪ/", meaning:"星期三"},
+                {word:"Thursday", phonetic:"/ˈθɜːrzdeɪ/", meaning:"星期四"},
+                {word:"refuse", phonetic:"/rɪˈfjuːz/", meaning:"拒绝"},
+                {word:"crowd", phonetic:"/kraʊd/", meaning:"人群"},
+                {word:"gather", phonetic:"/ˈɡæðər/", meaning:"聚集"},
+                {word:"shout", phonetic:"/ʃaʊt/", meaning:"喊叫"},
+                {word:"clock", phonetic:"/klɑːk/", meaning:"钟"},
+                {word:"hand", phonetic:"/hænd/", meaning:"指针"},
+                {word:"welcome", phonetic:"/ˈwelkəm/", meaning:"欢迎"},
+                {word:"town hall", phonetic:"/taʊn hɔːl/", meaning:"市政厅"}
+              ],
+              sentences: [
+                {en:"On Wednesday evening, we went to the Town Hall.", cn:"星期三晚上，我们去了市政厅。"},
+                {en:"It was the last day of the year.", cn:"那是一年的最后一天。"},
+                {en:"A large crowd of people had gathered under the Town Hall clock.", cn:"一大群人聚集在市政厅钟楼下。"},
+                {en:"It would strike twelve in twenty minutes' time.", cn:"它将在二十分钟后敲响十二点。"},
+                {en:"Fifteen minutes passed and then, at five to twelve, the clock stopped.", cn:"十五分钟过去了，差五分十二点时，钟停了。"},
+                {en:"The big minute hand did not move.", cn:"大的分针不动了。"},
+                {en:"We waited and waited, but nothing happened.", cn:"我们等了又等，但什么也没发生。"},
+                {en:"Suddenly someone shouted, 'It's two minutes past twelve!' ", cn:"突然有人喊道：'现在是十二点两分！'"},
+                {en:"I looked at my watch.", cn:"我看了看我的手表。"},
+                {en:"It was true.", cn:"确实如此。"},
+                {en:"The big clock refused to welcome the New Year.", cn:"大钟拒绝迎接新年。"},
+                {en:"At that moment, everybody began to laugh and sing.", cn:"那一刻，大家开始大笑和唱歌。"}
+              ]
+            },
+            {
+              title: "Lesson 10 Not for Jazz 不适于演奏爵士乐",
+              subtopics: ["音乐", "乐器"],
+              words: [
+                {word:"musical", phonetic:"/ˈmjuːzɪkl/", meaning:"音乐的"},
+                {word:"instrument", phonetic:"/ˈɪnstrəmənt/", meaning:"乐器"},
+                {word:"clavichord", phonetic:"/ˈklævɪkɔːrd/", meaning:"古钢琴"},
+                {word:"recently", phonetic:"/ˈriːsntli/", meaning:"最近"},
+                {word:"damage", phonetic:"/ˈdæmɪdʒ/", meaning:"损坏"},
+                {word:"key", phonetic:"/kiː/", meaning:"琴键"},
+                {word:"string", phonetic:"/strɪŋ/", meaning:"弦"},
+                {word:"shocked", phonetic:"/ʃɑːkt/", meaning:"震惊的"},
+                {word:"allow", phonetic:"/əˈlaʊ/", meaning:"允许"},
+                {word:"repair", phonetic:"/rɪˈper/", meaning:"修理"}
+              ],
+              sentences: [
+                {en:"We have an old musical instrument.", cn:"我们有一件旧乐器。"},
+                {en:"It is called a clavichord.", cn:"它叫做古钢琴。"},
+                {en:"It was made in Germany in 1681.", cn:"它是1681年在德国制造的。"},
+                {en:"Our clavichord is kept in the living room.", cn:"我们的古钢琴放在客厅里。"},
+                {en:"It has belonged to our family for a long time.", cn:"它属于我们家已经很长时间了。"},
+                {en:"The instrument was bought by my grandfather many years ago.", cn:"这件乐器是我祖父多年前买的。"},
+                {en:"Recently it was damaged by a visitor.", cn:"最近它被一位客人弄坏了。"},
+                {en:"She tried to play jazz on it!", cn:"她试图在上面弹爵士乐！"},
+                {en:"She struck the keys too hard.", cn:"她按键太重了。"},
+                {en:"Two of the strings were broken.", cn:"两根弦断了。"},
+                {en:"My father was shocked.", cn:"我父亲很震惊。"},
+                {en:"Now we are not allowed to touch it.", cn:"现在我们不允许碰它了。"},
+                {en:"It is being repaired by a friend of my father's.", cn:"它正被我父亲的一位朋友修理。"}
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "nce3",
+      title: "Book 3",
+      titleCn: "第三册",
+      units: [
+        {
+          chapter: "Lessons 1-5", title: "培养技能 Lessons 1-5",
+          units: [
+            {
+              title: "Lesson 1 A Puma at Large 逃遁的美洲狮",
+              subtopics: ["野生动物", "搜寻"],
+              words: [
+                {word:"puma", phonetic:"/ˈpjuːmə/", meaning:"美洲狮"},
+                {word:"spot", phonetic:"/spɑːt/", meaning:"发现；地点"},
+                {word:"evidence", phonetic:"/ˈevɪdəns/", meaning:"证据"},
+                {word:"cling", phonetic:"/klɪŋ/", meaning:"粘着； clinging"},
+                {word:"convince", phonetic:"/kənˈvɪns/", meaning:"使信服"},
+                {word:"somehow", phonetic:"/ˈsʌmhaʊ/", meaning:"不知怎么地"},
+                {word:"disturb", phonetic:"/dɪˈstɜːrb/", meaning:"打扰"},
+                {word:"oblige", phonetic:"/əˈblaɪdʒ/", meaning:"迫使；责成"},
+                {word:"investigate", phonetic:"/ɪnˈvestɪɡeɪt/", meaning:"调查"},
+                {word:"extraordinarily", phonetic:"/ɪkˈstrɔːrdənerəli/", meaning:"非常地"}
+              ],
+              sentences: [
+                {en:"Pumas are large, cat-like animals.", cn:"美洲狮是大型猫科动物。"},
+                {en:"When reports came into London Zoo that a wild puma had been spotted forty-five miles south of London, they were not taken seriously.", cn:"当伦敦动物园收到报告说在伦敦以南四十五英里处发现了一只野生美洲狮时，这些报告没有受到重视。"},
+                {en:"However, as the evidence began to accumulate, experts from the Zoo felt obliged to investigate.", cn:"然而，随着证据越积越多，动物园的专家们感到有必要进行调查。"},
+                {en:"The search proved difficult.", cn:"搜寻工作很困难。"},
+                {en:"For the puma was often observed at one place in the morning and at another place twenty miles away in the evening.", cn:"因为美洲狮常在早上出现在一个地方，傍晚又出现在二十英里外的另一个地方。"},
+                {en:"Wherever it went, it left behind it a trail of dead deer and small animals.", cn:"无论它走到哪里，身后都留下一串死鹿和小动物的痕迹。"},
+                {en:"Paw prints were seen in a number of places.", cn:"在很多地方都看到了爪印。"},
+                {en:"This was not a dead puma, but a live one.", cn:"这不是死的美洲狮，而是活的。"},
+                {en:"No pumas had been reported missing from any zoo in the country.", cn:"全国没有任何动物园报告美洲狮走失。"},
+                {en:"If anyone was making trouble, he would make himself known.", cn:"如果有人在制造麻烦，他会暴露自己的。"}
+              ]
+            },
+            {
+              title: "Lesson 2 Thirteen Equals One 十三等于一",
+              subtopics: ["教堂", "钟声"],
+              words: [
+                {word:"vicar", phonetic:"/ˈvɪkər/", meaning:"牧师"},
+                {word:"equal", phonetic:"/ˈiːkwəl/", meaning:"等于"},
+                {word:"church", phonetic:"/tʃɜːrtʃ/", meaning:"教堂"},
+                {word:"torch", phonetic:"/tɔːrtʃ/", meaning:"手电筒"},
+                {word:"quiet", phonetic:"/ˈkwaɪət/", meaning:"安静的"},
+                {word:"dark", phonetic:"/dɑːrk/", meaning:"黑暗的"},
+                {word:"torchlight", phonetic:"/ˈtɔːrtʃlaɪt/", meaning:"手电筒光"},
+                {word:"repair", phonetic:"/rɪˈper/", meaning:"修理"},
+                {word:"strike", phonetic:"/straɪk/", meaning:"敲响"},
+                {word:"still", phonetic:"/stɪl/", meaning:"仍然"}
+              ],
+              sentences: [
+                {en:"Our vicar is always raising money for one cause or another.", cn:"我们的牧师总是在为一个又一个事业筹款。"},
+                {en:"But he has never managed to get enough money to have the church clock repaired.", cn:"但他从未筹到足够的钱来修理教堂的钟。"},
+                {en:"The big clock which used to strike the hours day and night was damaged many years ago.", cn:"那座日夜报时的大钟多年前就坏了。"},
+                {en:"One night, our vicar woke up with a start.", cn:"一天夜里，我们的牧师猛然惊醒。"},
+                {en:"The clock was striking the hours!", cn:"钟正在报时！"},
+                {en:"Looking at his watch, he saw that it was one o'clock.", cn:"他看了看表，发现是一点钟。"},
+                {en:"Armed with a torch, the vicar went up into the clock tower.", cn:"牧师拿着手电筒，上了钟楼。"},
+                {en:"In the torchlight, he caught sight of a figure.", cn:"在手电筒的光下，他看到了一个人影。"},
+                {en:"Whatever are you doing up here, Bill?", cn:"比尔，你在这里干什么？"},
+                {en:"I have been hoping to get a better view of the clock.", cn:"我一直想更好地看看这个钟。"}
+              ]
+            },
+            {
+              title: "Lesson 3 An Unknown Goddess 无名女神",
+              subtopics: ["考古", "文明"],
+              words: [
+                {word:"goddess", phonetic:"/ˈɡɑːdəs/", meaning:"女神"},
+                {word:"archaeologist", phonetic:"/ˌɑːrkiˈɑːlədʒɪst/", meaning:"考古学家"},
+                {word:"explore", phonetic:"/ɪkˈsplɔːr/", meaning:"考察；探险"},
+                {word:"ancient", phonetic:"/ˈeɪnʃənt/", meaning:"古代的"},
+                {word:"prosperous", phonetic:"/ˈprɑːspərəs/", meaning:"繁荣的"},
+                {word:"civilization", phonetic:"/ˌsɪvələˈzeɪʃn/", meaning:"文明"},
+                {word:"storey", phonetic:"/ˈstɔːri/", meaning:"楼层"},
+                {word:"drain", phonetic:"/dreɪn/", meaning:"排水"},
+                {word:"temple", phonetic:"/ˈtempl/", meaning:"庙宇"},
+                {word:"sacred", phonetic:"/ˈseɪkrɪd/", meaning:"神圣的"}
+              ],
+              sentences: [
+                {en:"Some time ago, an interesting discovery was made by archaeologists on the Aegean island of Kea.", cn:"不久前，考古学家在爱琴海的基亚岛上有一个有趣的发现。"},
+                {en:"An American team explored a temple which stands in an ancient city on the promontory of Ayia Irini.", cn:"一支美国考古队考察了位于艾亚·伊里尼海角上一座古城中的庙宇。"},
+                {en:"The city at one time must have been prosperous.", cn:"这座城市曾一度很繁华。"},
+                {en:"It enjoyed a high level of civilization.", cn:"它享有高度文明。"},
+                {en:"Houses were built of stone.", cn:"房子是用石头建造的。"},
+                {en:"They had large rooms with beautifully decorated walls.", cn:"房间很大，墙壁装饰精美。"},
+                {en:"The temple was used as a place of worship.", cn:"这座庙宇被用作礼拜场所。"},
+                {en:"The body of one statue was found among remains dating from the fifteenth century B.C.", cn:"在一具公元前十五世纪的遗骸中发现了一尊雕像的躯干。"},
+                {en:"Its head happened to be among remains of the fifth century B.C.", cn:"它的头部碰巧在公元前五世纪的遗骸中。"},
+                {en:"She was wearing a full-length skirt which swept the ground.", cn:"她穿着拖地长裙。"},
+                {en:"Despite her great age, she was very graceful indeed.", cn:"尽管年代久远，她确实非常优雅。"},
+                {en:"So far, the archaeologists have been unable to discover her identity.", cn:"到目前为止，考古学家还无法确定她的身份。"}
+              ]
+            },
+            {
+              title: "Lesson 4 The Double Life of Alfred Bloggs 阿尔弗雷德·布洛格斯的双重生活",
+              subtopics: ["职业", "社会身份"],
+              words: [
+                {word:"double", phonetic:"/ˈdʌbl/", meaning:"双重的"},
+                {word:"manual", phonetic:"/ˈmænjuəl/", meaning:"体力的"},
+                {word:"collar", phonetic:"/ˈkɑːlər/", meaning:"领子"},
+                {word:"secret", phonetic:"/ˈsiːkrɪt/", meaning:"秘密"},
+                {word:"corporation", phonetic:"/ˌkɔːrpəˈreɪʃn/", meaning:"公司"},
+                {word:"shower", phonetic:"/ˈʃaʊər/", meaning:"淋浴"},
+                {word:"brush", phonetic:"/brʌʃ/", meaning:"刷子"},
+                {word:"rush", phonetic:"/rʌʃ/", meaning:"冲；匆忙"},
+                {word:"suit", phonetic:"/suːt/", meaning:"西装"},
+                {word:"overalls", phonetic:"/ˈoʊvərɔːlz/", meaning:"工装裤"}
+              ],
+              sentences: [
+                {en:"These days, people who do manual work are often paid far more money than clerks who do the same work in offices.", cn:"如今，从事体力劳动的人往往比在办公室做同样工作的职员挣得多得多。"},
+                {en:"People who work in offices are frequently referred to as 'white-collar workers'.", cn:"在办公室工作的人常被称为'白领'。"},
+                {en:"This can give rise to curious situations.", cn:"这会引起奇怪的情况。"},
+                {en:"When he got married, Alf was too embarrassed to say anything to his wife about his job.", cn:"阿尔夫结婚时，不好意思告诉妻子自己的工作。"},
+                {en:"Alf's wife has never discovered the secret.", cn:"阿尔夫的妻子从未发现这个秘密。"},
+                {en:"Every morning, he left home dressed in a smart black suit.", cn:"每天早晨，他穿着时髦的黑色西装出门。"},
+                {en:"He then changed into overalls and spent the next eight hours as a dustman.", cn:"然后换上工装，做八个小时的清洁工。"},
+                {en:"Before returning home at night, he took a shower and changed back into his suit.", cn:"晚上回家前，他洗澡换回西装。"},
+                {en:"Alf's wife has never discovered the secret.", cn:"阿尔夫的妻子从未发现这个秘密。"},
+                {en:"Alf now earns twice as much as he used to.", cn:"阿尔夫现在的收入是以前的两倍。"},
+                {en:"He will soon be working in an office as a junior clerk.", cn:"他即将成为办公室的一名初级职员。"}
+              ]
+            },
+            {
+              title: "Lesson 5 The Facts 确切数字",
+              subtopics: ["新闻", "数据核实"],
+              words: [
+                {word:"editor", phonetic:"/ˈedɪtər/", meaning:"编辑"},
+                {word:"extreme", phonetic:"/ɪkˈstriːm/", meaning:"极端"},
+                {word:"statistics", phonetic:"/stəˈtɪstɪks/", meaning:"统计"},
+                {word:"publish", phonetic:"/ˈpʌblɪʃ/", meaning:"出版"},
+                {word:"journalist", phonetic:"/ˈdʒɜːrnəlɪst/", meaning:"记者"},
+                {word:"palace", phonetic:"/ˈpæləs/", meaning:"宫殿"},
+                {word:"fire", phonetic:"/ˈfaɪər/", meaning:"开除"},
+                {word:"fax", phonetic:"/fæks/", meaning:"传真"},
+                {word:"impatient", phonetic:"/ɪmˈpeɪʃnt/", meaning:"不耐烦的"},
+                {word:"original", phonetic:"/əˈrɪdʒənl/", meaning:"最初的"}
+              ],
+              sentences: [
+                {en:"Editors of newspapers and magazines often go to extremes to provide their readers with unimportant facts and statistics.", cn:"报刊编辑经常走极端，向读者提供无关紧要的事实和数据。"},
+                {en:"Last year a journalist had been instructed by a well-known magazine to write an article on the president's palace.", cn:"去年，一位记者受一家知名杂志委托，写一篇关于总统府的文章。"},
+                {en:"The editor sent the journalist two faxes.", cn:"编辑给记者发了两份传真。"},
+                {en:"The journalist immediately set out to obtain these important facts.", cn:"记者立即出发去获取这些重要事实。"},
+                {en:"But he took a long time to send them.", cn:"但他花了很长时间才发来。"},
+                {en:"Meanwhile, the editor was getting impatient.", cn:"同时，编辑变得越来越不耐烦。"},
+                {en:"He sent the journalist two more faxes.", cn:"他又给记者发了两份传真。"},
+                {en:"When the journalist again failed to reply, the editor reluctantly published the article as it had originally been written.", cn:"记者再次未回复时，编辑勉强按原稿发表了文章。"},
+                {en:"The article began: 'Hundreds of steps lead to the high wall which surrounds the president's palace.'", cn:"文章开头写道：'数百级台阶通向环绕总统府的高墙。'"},
+                {en:"The editor at once published an apology.", cn:"编辑立即发表了道歉声明。"}
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "nce4",
+      title: "Book 4",
+      titleCn: "第四册",
+      units: [
+        {
+          chapter: "Lessons 1-5", title: "流利英语 Lessons 1-5",
+          units: [
+            {
+              title: "Lesson 1 Finding Fossil Man 发现化石人",
+              subtopics: ["历史", "考古"],
+              words: [
+                {word:"fossil", phonetic:"/ˈfɑːsl/", meaning:"化石"},
+                {word:"legend", phonetic:"/ˈledʒənd/", meaning:"传说"},
+                {word:"immortal", phonetic:"/ɪˈmɔːrtl/", meaning:"不朽的"},
+                {word:"discover", phonetic:"/dɪˈskʌvər/", meaning:"发现"},
+                {word:"trace", phonetic:"/treɪs/", meaning:"痕迹"},
+                {word:"ancestor", phonetic:"/ˈænsestər/", meaning:"祖先"},
+                {word:"origin", phonetic:"/ˈɔːrɪdʒɪn/", meaning:"起源"},
+                {word:"preserve", phonetic:"/prɪˈzɜːrv/", meaning:"保存"},
+                {word:"remains", phonetic:"/rɪˈmeɪnz/", meaning:"遗骸"},
+                {word:"stone age", phonetic:"/stoʊn eɪdʒ/", meaning:"石器时代"}
+              ],
+              sentences: [
+                {en:"Why are legends handed down by storytellers useful?", cn:"为什么说书人传下来的传说是有用的？"},
+                {en:"We can read of things that happened 5,000 years ago in the Near East.", cn:"我们可以读到近东五千年前发生的事情。"},
+                {en:"But where the 'legends' of the remote past are concerned, we have to depend on the storyteller.", cn:"但涉及远古的'传说'时，我们只能依赖说书人。"},
+                {en:"The only way that they can preserve their history is to recount it as sagas.", cn:"他们保存历史的唯一方式是作为传说讲述。"},
+                {en:"These sagas are legendary tales.", cn:"这些传说是传奇故事。"},
+                {en:"Anthropologists wondered where the remote ancestors of the Polynesian peoples came from.", cn:"人类学家想知道波利尼西亚人的远古祖先来自何方。"},
+                {en:"Legend says that they came from the stone age.", cn:"传说他们来自石器时代。"},
+                {en:"Fossil man was not a creature that could be called primitive.", cn:"化石人并不是一种可以称为原始的生物。"}
+              ]
+            },
+            {
+              title: "Lesson 2 Spare That Spider 不要伤害蜘蛛",
+              subtopics: ["自然", "生态平衡"],
+              words: [
+                {word:"spider", phonetic:"/ˈspaɪdər/", meaning:"蜘蛛"},
+                {word:"insect", phonetic:"/ˈɪnsekt/", meaning:"昆虫"},
+                {word:"beast", phonetic:"/biːst/", meaning:"野兽"},
+                {word:"destroy", phonetic:"/dɪˈstrɔɪ/", meaning:"毁灭"},
+                {word:"wasp", phonetic:"/wɑːsp/", meaning:"黄蜂"},
+                {word:"nest", phonetic:"/nest/", meaning:"巢"},
+                {word:"devour", phonetic:"/dɪˈvaʊər/", meaning:"吞食"},
+                {word:"worthy", phonetic:"/ˈwɜːrði/", meaning:"值得的"},
+                {word:"crows", phonetic:"/kroʊz/", meaning:"乌鸦"},
+                {word:"species", phonetic:"/ˈspiːʃiːz/", meaning:"物种"}
+              ],
+              sentences: [
+                {en:"Why, you may wonder, should spiders be our friends?", cn:"你也许会问，为什么蜘蛛应该是我们的朋友？"},
+                {en:"They devour enormous numbers of insects.", cn:"它们吞食大量的昆虫。"},
+                {en:"Some of the insects they eat are the greatest enemies of the human race.", cn:"它们吃的一些昆虫是人类最大的敌人。"},
+                {en:"How many spiders are engaged in this work on our behalf?", cn:"有多少蜘蛛在为我们做这项工作？"},
+                {en:"One authority on spiders made a census of the spiders in a grass field.", cn:"一位蜘蛛专家统计了一片草地中的蜘蛛数量。"},
+                {en:"It was estimated that they were no less than 2,250,000 in the field.", cn:"据估计，这片地里有不少于225万只蜘蛛。"},
+                {en:"Spiders do not have the least interest in harming us.", cn:"蜘蛛对伤害我们毫无兴趣。"},
+                {en:"Unlike wasps, spiders never sting.", cn:"与黄蜂不同，蜘蛛从不蜇人。"}
+              ]
+            },
+            {
+              title: "Lesson 3 Matterhorn Man 马特霍恩峰的攀登者",
+              subtopics: ["登山", "冒险"],
+              words: [
+                {word:"summit", phonetic:"/ˈsʌmɪt/", meaning:"顶峰"},
+                {word:"pioneer", phonetic:"/ˌpaɪəˈnɪr/", meaning:"先驱"},
+                {word:"route", phonetic:"/ruːt/", meaning:"路线"},
+                {word:"adventure", phonetic:"/ədˈventʃər/", meaning:"冒险"},
+                {word:"freedom", phonetic:"/ˈfriːdəm/", meaning:"自由"},
+                {word:"scope", phonetic:"/skoʊp/", meaning:"范围；余地"},
+                {word:"despair", phonetic:"/dɪˈsper/", meaning:"绝望"},
+                {word:"respectable", phonetic:"/rɪˈspektəbl/", meaning:"体面的"},
+                {word:"alpine", phonetic:"/ˈælpaɪn/", meaning:"高山的"},
+                {word:"climber", phonetic:"/ˈklaɪmər/", meaning:"攀登者"}
+              ],
+              sentences: [
+                {en:"Modern alpinists try to climb mountains by a route which will give them good sport.", cn:"现代登山者试图通过能带来乐趣的路线登山。"},
+                {en:"They have a different notion of the meaning of the word 'sport'.", cn:"他们对'运动'一词有不同的理解。"},
+                {en:"For men of the Stone Age, climbing was not a sport.", cn:"对石器时代的人来说，攀岩不是运动。"},
+                {en:"It was a matter of food and freedom.", cn:"那是为了食物和自由。"},
+                {en:"They climbed to find food or to escape from enemies.", cn:"他们攀爬是为了寻找食物或逃避敌人。"},
+                {en:"In the Middle Ages, men climbed for military reasons.", cn:"在中世纪，人们出于军事目的而攀爬。"},
+                {en:"The pioneers of the 19th century had a different approach.", cn:"19世纪的先驱者有不同的方式。"},
+                {en:"They sought freedom and adventure.", cn:"他们寻求自由和冒险。"},
+                {en:"The Matterhorn was the last great mountain to be conquered.", cn:"马特霍恩峰是最后一座被征服的大山。"},
+                {en:"Whymper's party reached the summit in 1865.", cn:"温珀的队伍于1865年登顶。"}
+              ]
+            },
+            {
+              title: "Lesson 4 Seeing Hands 能看见东西的手",
+              subtopics: ["超自然", "实验"],
+              words: [
+                {word:"vision", phonetic:"/ˈvɪʒn/", meaning:"视觉"},
+                {word:"perceive", phonetic:"/pərˈsiːv/", meaning:"感知"},
+                {word:"stick", phonetic:"/stɪk/", meaning:"棍子"},
+                {word:"strap", phonetic:"/stræp/", meaning:"带子"},
+                {word:"surface", phonetic:"/ˈsɜːrfɪs/", meaning:"表面"},
+                {word:"object", phonetic:"/ˈɑːbdʒekt/", meaning:"物体"},
+                {word:"curve", phonetic:"/kɜːrv/", meaning:"曲线"},
+                {word:"solid", phonetic:"/ˈsɑːlɪd/", meaning:"固体的"},
+                {word:"predict", phonetic:"/prɪˈdɪkt/", meaning:"预测"},
+                {word:"blind", phonetic:"/blaɪnd/", meaning:"盲的"}
+              ],
+              sentences: [
+                {en:"In the Soviet Union several cases have been reported recently of people who can read and detect colours with their fingers.", cn:"在苏联，最近报道了几例能用手指阅读和辨别颜色的人。"},
+                {en:"One girl named Vera could perceive things with different parts of her skin.", cn:"一个叫维拉的女孩能用皮肤的不同部位感知事物。"},
+                {en:"This ability was first noticed by her father.", cn:"这种能力最初是她父亲注意到的。"},
+                {en:"Vera's curious talent was brought to the notice of a scientific institute.", cn:"维拉的奇特才能引起了一个科学研究所的注意。"},
+                {en:"She was given a series of tests.", cn:"她接受了一系列测试。"},
+                {en:"She was able to detect colours and read a newspaper with her elbow.", cn:"她能用肘部辨别颜色和读报纸。"},
+                {en:"She could also identify the colour and shape of objects with her knee.", cn:"她还能用膝盖辨别物体的颜色和形状。"},
+                {en:"If a stick was held near her, she could tell whether it was straight or curved.", cn:"如果在附近放一根棍子，她能判断它是直的还是弯的。"},
+                {en:"Other reports say she could even tell the shape of a solid object.", cn:"其他报告说她甚至能辨别固体物体的形状。"}
+              ]
+            },
+            {
+              title: "Lesson 5 The Power of the Press 新闻界的力量",
+              subtopics: ["新闻", "社会影响"],
+              words: [
+                {word:"press", phonetic:"/pres/", meaning:"新闻界"},
+                {word:"democratic", phonetic:"/ˌdeməˈkrætɪk/", meaning:"民主的"},
+                {word:"restrict", phonetic:"/rɪˈstrɪkt/", meaning:"限制"},
+                {word:"publish", phonetic:"/ˈpʌblɪʃ/", meaning:"出版"},
+                {word:"permanent", phonetic:"/ˈpɜːrmənənt/", meaning:"永久的"},
+                {word:"popular", phonetic:"/ˈpɑːpjələr/", meaning:"受欢迎的"},
+                {word:"influence", phonetic:"/ˈɪnfluəns/", meaning:"影响"},
+                {word:"government", phonetic:"/ˈɡʌvərnmənt/", meaning:"政府"},
+                {word:"journalist", phonetic:"/ˈdʒɜːrnəlɪst/", meaning:"记者"},
+                {word:"corruption", phonetic:"/kəˈrʌpʃn/", meaning:"腐败"}
+              ],
+              sentences: [
+                {en:"In democratic countries any efforts to restrict the freedom of the press are rightly condemned.", cn:"在民主国家，任何限制新闻自由的企图都会受到应有的谴责。"},
+                {en:"This freedom is easily abused.", cn:"这种自由很容易被滥用。"},
+                {en:"The press has great power.", cn:"新闻界有巨大的力量。"},
+                {en:"It can influence governments.", cn:"它可以影响政府。"},
+                {en:"Journalists can make or break the reputation of public figures.", cn:"记者可以建立或毁掉公众人物的声誉。"},
+                {en:"There is a permanent struggle between the press and the government.", cn:"新闻界和政府之间存在着持久的斗争。"},
+                {en:"The power of the press is a great responsibility.", cn:"新闻界的力量是一种巨大的责任。"},
+                {en:"It can expose corruption and injustice.", cn:"它可以揭露腐败和不公正。"},
+                {en:"But it can also destroy innocent lives.", cn:"但它也可以毁掉无辜的生活。"}
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+,
+{
+  id: "access-usa",
+  title: "走进美国",
+  subtitle: "Access to USA",
+  icon: "🇺🇸",
+  hasVolumes: false,
+  units: [
+    {
+      chapter: "Chapter 1", title: "日常生活 Daily Life",
+      units: [
+        {
+          title: "Unit 1 Greetings 问候与介绍",
+          subtopics: ["见面问候", "自我介绍"],
+          words: [
+            {word:"greeting", phonetic:"/ˈɡriːtɪŋ/", meaning:"问候"},
+            {word:"introduction", phonetic:"/ˌɪntrəˈdʌkʃn/", meaning:"介绍"},
+            {word:"pleased", phonetic:"/pliːzd/", meaning:"高兴的"},
+            {word:"meet", phonetic:"/miːt/", meaning:"遇见"},
+            {word:"name", phonetic:"/neɪm/", meaning:"名字"},
+            {word:"neighbor", phonetic:"/ˈneɪbər/", meaning:"邻居"},
+            {word:"colleague", phonetic:"/ˈkɑːliːɡ/", meaning:"同事"},
+            {word:"friendly", phonetic:"/ˈfrendli/", meaning:"友好的"},
+            {word:"handsome", phonetic:"/ˈhænsəm/", meaning:"英俊的"},
+            {word:"first time", phonetic:"/fɜːrst taɪm/", meaning:"第一次"}
+          ],
+          sentences: [
+            {en:"Hi, how are you doing?", cn:"嗨，你好吗？"},
+            {en:"Nice to meet you.", cn:"很高兴见到你。"},
+            {en:"Let me introduce myself.", cn:"让我自我介绍一下。"},
+            {en:"My name is John Smith.", cn:"我叫约翰·史密斯。"},
+            {en:"I'm pleased to meet you.", cn:"很高兴见到你。"},
+            {en:"This is my neighbor, Sarah.", cn:"这是我的邻居，莎拉。"},
+            {en:"Where are you from?", cn:"你来自哪里？"},
+            {en:"I'm from California.", cn:"我来自加利福尼亚。"},
+            {en:"It's a pleasure to meet you.", cn:"很荣幸见到你。"},
+            {en:"See you around!", cn:"回头见！"}
+          ]
+        },
+        {
+          title: "Unit 2 At the Airport 在机场",
+          subtopics: ["登机手续", "机场对话"],
+          words: [
+            {word:"airport", phonetic:"/ˈerpɔːrt/", meaning:"机场"},
+            {word:"flight", phonetic:"/flaɪt/", meaning:"航班"},
+            {word:"gate", phonetic:"/ɡeɪt/", meaning:"登机口"},
+            {word:"boarding pass", phonetic:"/ˈbɔːrdɪŋ pæs/", meaning:"登机牌"},
+            {word:"luggage", phonetic:"/ˈlʌɡɪdʒ/", meaning:"行李"},
+            {word:"check in", phonetic:"/tʃek ɪn/", meaning:"办理登机手续"},
+            {word:"security", phonetic:"/səˈkjʊərəti/", meaning:"安检"},
+            {word:"departure", phonetic:"/dɪˈpɑːrtʃər/", meaning:"出发"},
+            {word:"arrival", phonetic:"/əˈraɪvl/", meaning:"到达"},
+            {word:"delay", phonetic:"/dɪˈleɪ/", meaning:"延误"}
+          ],
+          sentences: [
+            {en:"Where is the check-in counter?", cn:"登机手续办理柜台在哪里？"},
+            {en:"Your flight is delayed by two hours.", cn:"您的航班延误了两小时。"},
+            {en:"Please show me your boarding pass.", cn:"请出示您的登机牌。"},
+            {en:"The gate number is B12.", cn:"登机口是B12。"},
+            {en:"How many bags are you checking?", cn:"您要托运几件行李？"},
+            {en:"Please remove your shoes for security.", cn:"请脱鞋过安检。"},
+            {en:"What time does the flight depart?", cn:"航班什么时候起飞？"},
+            {en:"The departure time is 3:00 PM.", cn:"出发时间是下午3点。"},
+            {en:"Where is the baggage claim?", cn:"行李提取处在哪里？"},
+            {en:"My luggage is lost.", cn:"我的行李丢了。"}
+          ]
+        },
+        {
+          title: "Unit 3 At the Hotel 在酒店",
+          subtopics: ["预订房间", "入住退房"],
+          words: [
+            {word:"hotel", phonetic:"/hoʊˈtel/", meaning:"酒店"},
+            {word:"reservation", phonetic:"/ˌrezərˈveɪʃn/", meaning:"预订"},
+            {word:"check in", phonetic:"/tʃek ɪn/", meaning:"入住"},
+            {word:"check out", phonetic:"/tʃek aʊt/", meaning:"退房"},
+            {word:"room key", phonetic:"/ruːm kiː/", meaning:"房间钥匙"},
+            {word:"front desk", phonetic:"/frʌnt desk/", meaning:"前台"},
+            {word:"suite", phonetic:"/swiːt/", meaning:"套房"},
+            {word:"amenities", phonetic:"/əˈmenɪtiz/", meaning:"设施"},
+            {word:"breakfast", phonetic:"/ˈbrekfəst/", meaning:"早餐"},
+            {word:"receipt", phonetic:"/rɪˈsiːt/", meaning:"收据"}
+          ],
+          sentences: [
+            {en:"I have a reservation under Smith.", cn:"我用史密斯的名字预订了房间。"},
+            {en:"I'd like to check in.", cn:"我想办理入住。"},
+            {en:"Here is your room key.", cn:"这是您的房间钥匙。"},
+            {en:"What time is check-out?", cn:"退房时间是几点？"},
+            {en:"Check-out is at 11 AM.", cn:"退房时间是上午11点。"},
+            {en:"Is breakfast included?", cn:"包含早餐吗？"},
+            {en:"Yes, breakfast is from 7 to 10.", cn:"是的，早餐从7点到10点。"},
+            {en:"I need a wake-up call at 6.", cn:"我需要6点的叫醒服务。"},
+            {en:"The front desk is open 24 hours.", cn:"前台24小时开放。"},
+            {en:"Can I get a receipt, please?", cn:"请给我开张收据好吗？"}
+          ]
+        },
+        {
+          title: "Unit 4 At the Restaurant 在餐厅",
+          subtopics: ["点餐", "结账"],
+          words: [
+            {word:"restaurant", phonetic:"/ˈrestrɑːnt/", meaning:"餐厅"},
+            {word:"menu", phonetic:"/ˈmenjuː/", meaning:"菜单"},
+            {word:"order", phonetic:"/ˈɔːrdər/", meaning:"点餐"},
+            {word:"appetizer", phonetic:"/ˈæpɪtaɪzər/", meaning:"开胃菜"},
+            {word:"main course", phonetic:"/meɪn kɔːrs/", meaning:"主菜"},
+            {word:"dessert", phonetic:"/dɪˈzɜːrt/", meaning:"甜点"},
+            {word:"bill", phonetic:"/bɪl/", meaning:"账单"},
+            {word:"tip", phonetic:"/tɪp/", meaning:"小费"},
+            {word:"waiter", phonetic:"/ˈweɪtər/", meaning:"服务员"},
+            {word:"delicious", phonetic:"/dɪˈlɪʃəs/", meaning:"美味的"}
+          ],
+          sentences: [
+            {en:"A table for two, please.", cn:"请安排两人桌。"},
+            {en:"Could I see the menu?", cn:"能看一下菜单吗？"},
+            {en:"Are you ready to order?", cn:"您准备好点餐了吗？"},
+            {en:"I'll have the steak, medium rare.", cn:"我要牛排，三分熟。"},
+            {en:"Would you like an appetizer?", cn:"您要开胃菜吗？"},
+            {en:"What do you recommend?", cn:"你推荐什么？"},
+            {en:"The soup of the day is clam chowder.", cn:"今日例汤是蛤蜊浓汤。"},
+            {en:"Could we get the bill, please?", cn:"请结账。"},
+            {en:"The food was delicious!", cn:"食物很美味！"},
+            {en:"Let's leave a 20% tip.", cn:"我们留20%的小费吧。"}
+          ]
+        },
+        {
+          title: "Unit 5 Shopping 购物",
+          subtopics: ["商场购物", "退换货"],
+          words: [
+            {word:"shopping", phonetic:"/ˈʃɑːpɪŋ/", meaning:"购物"},
+            {word:"price", phonetic:"/praɪs/", meaning:"价格"},
+            {word:"sale", phonetic:"/seɪl/", meaning:"促销"},
+            {word:"discount", phonetic:"/ˈdɪskaʊnt/", meaning:"折扣"},
+            {word:"receipt", phonetic:"/rɪˈsiːt/", meaning:"收据"},
+            {word:"try on", phonetic:"/traɪ ɑːn/", meaning:"试穿"},
+            {word:"size", phonetic:"/saɪz/", meaning:"尺码"},
+            {word:"refund", phonetic:"/ˈriːfʌnd/", meaning:"退款"},
+            {word:"exchange", phonetic:"/ɪksˈtʃeɪndʒ/", meaning:"调换"},
+            {word:"cashier", phonetic:"/kæˈʃɪr/", meaning:"收银员"}
+          ],
+          sentences: [
+            {en:"How much does this cost?", cn:"这个多少钱？"},
+            {en:"Is this on sale?", cn:"这个在促销吗？"},
+            {en:"Can I try this on?", cn:"我能试穿一下吗？"},
+            {en:"Do you have this in a larger size?", cn:"有大一号的吗？"},
+            {en:"The price is $49.99.", cn:"价格是49.99美元。"},
+            {en:"There's a 30% discount today.", cn:"今天打七折。"},
+            {en:"I'd like to return this.", cn:"我想退掉这个。"},
+            {en:"Do you have the receipt?", cn:"您有收据吗？"},
+            {en:"I'd like to exchange this for a different color.", cn:"我想换个颜色。"},
+            {en:"Where is the checkout?", cn:"收银台在哪里？"}
+          ]
+        }
+      ]
+    },
+    {
+      chapter: "Chapter 2", title: "公共服务 Public Services",
+      units: [
+        {
+          title: "Unit 6 At the Bank 在银行",
+          subtopics: ["开户", "存取款"],
+          words: [
+            {word:"bank", phonetic:"/bæŋk/", meaning:"银行"},
+            {word:"account", phonetic:"/əˈkaʊnt/", meaning:"账户"},
+            {word:"deposit", phonetic:"/dɪˈpɑːzɪt/", meaning:"存款"},
+            {word:"withdraw", phonetic:"/wɪðˈdrɔː/", meaning:"取款"},
+            {word:"balance", phonetic:"/ˈbæləns/", meaning:"余额"},
+            {word:"transfer", phonetic:"/trænsˈfɜːr/", meaning:"转账"},
+            {word:"check", phonetic:"/tʃek/", meaning:"支票"},
+            {word:"ATM", phonetic:"/ˌeɪtiːˈem/", meaning:"自动取款机"},
+            {word:"PIN", phonetic:"/pɪn/", meaning:"密码"},
+            {word:"interest", phonetic:"/ˈɪntrəst/", meaning:"利息"}
+          ],
+          sentences: [
+            {en:"I'd like to open an account.", cn:"我想开一个账户。"},
+            {en:"What's my account balance?", cn:"我的账户余额是多少？"},
+            {en:"I want to deposit $500.", cn:"我想存500美元。"},
+            {en:"I need to withdraw some cash.", cn:"我需要取一些现金。"},
+            {en:"Where is the ATM?", cn:"自动取款机在哪里？"},
+            {en:"Please enter your PIN.", cn:"请输入您的密码。"},
+            {en:"I'd like to transfer money.", cn:"我想转账。"},
+            {en:"What's the interest rate?", cn:"利率是多少？"},
+            {en:"Can I cash this check?", cn:"我能兑现这张支票吗？"},
+            {en:"The balance is $1,200.", cn:"余额是1200美元。"}
+          ]
+        },
+        {
+          title: "Unit 7 At the Post Office 在邮局",
+          subtopics: ["寄信", "寄包裹"],
+          words: [
+            {word:"post office", phonetic:"/poʊst ˈɑːfɪs/", meaning:"邮局"},
+            {word:"stamp", phonetic:"/stæmp/", meaning:"邮票"},
+            {word:"mail", phonetic:"/meɪl/", meaning:"邮件"},
+            {word:"package", phonetic:"/ˈpækɪdʒ/", meaning:"包裹"},
+            {word:"envelope", phonetic:"/ˈenvəloʊp/", meaning:"信封"},
+            {word:" postage", phonetic:"/ˈpoʊstɪdʒ/", meaning:"邮费"},
+            {word:"express", phonetic:"/ɪkˈspres/", meaning:"快递"},
+            {word:"address", phonetic:"/əˈdres/", meaning:"地址"},
+            {word:"sender", phonetic:"/ˈsendər/", meaning:"寄件人"},
+            {word:"recipient", phonetic:"/rɪˈsɪpiənt/", meaning:"收件人"}
+          ],
+          sentences: [
+            {en:"I'd like to mail this letter.", cn:"我想寄这封信。"},
+            {en:"How much is the postage?", cn:"邮费多少？"},
+            {en:"I need two stamps, please.", cn:"请给我两张邮票。"},
+            {en:"I want to send this package.", cn:"我想寄这个包裹。"},
+            {en:"Is it going overseas?", cn:"寄往海外吗？"},
+            {en:"How long does express mail take?", cn:"快递要多久？"},
+            {en:"It takes 2-3 business days.", cn:"需要2-3个工作日。"},
+            {en:"Please write the return address.", cn:"请写上回邮地址。"},
+            {en:"Do you need bubble wrap?", cn:"您需要气泡垫吗？"},
+            {en:"The package weighs 2 pounds.", cn:"包裹重两磅。"}
+          ]
+        },
+        {
+          title: "Unit 8 At the Doctor's Office 看医生",
+          subtopics: ["挂号", "描述症状"],
+          words: [
+            {word:"doctor", phonetic:"/ˈdɑːktər/", meaning:"医生"},
+            {word:"appointment", phonetic:"/əˈpɔɪntmənt/", meaning:"预约"},
+            {word:"prescription", phonetic:"/prɪˈskrɪpʃn/", meaning:"处方"},
+            {word:"symptom", phonetic:"/ˈsɪmptəm/", meaning:"症状"},
+            {word:"fever", phonetic:"/ˈfiːvər/", meaning:"发烧"},
+            {word:"cough", phonetic:"/kɑːf/", meaning:"咳嗽"},
+            {word:"sore throat", phonetic:"/sɔːr θroʊt/", meaning:"喉咙痛"},
+            {word:"headache", phonetic:"/ˈhedeɪk/", meaning:"头痛"},
+            {word:"medicine", phonetic:"/ˈmedsən/", meaning:"药"},
+            {word:"insurance", phonetic:"/ɪnˈʃʊrəns/", meaning:"保险"}
+          ],
+          sentences: [
+            {en:"I need to see a doctor.", cn:"我需要看医生。"},
+            {en:"I have an appointment at 3 PM.", cn:"我预约了下午3点。"},
+            {en:"What are your symptoms?", cn:"您有什么症状？"},
+            {en:"I have a fever and a cough.", cn:"我发烧咳嗽。"},
+            {en:"My throat is sore.", cn:"我喉咙痛。"},
+            {en:"I've had a headache for two days.", cn:"我头痛两天了。"},
+            {en:"I'll write you a prescription.", cn:"我给您开个处方。"},
+            {en:"Take this medicine twice a day.", cn:"这种药每天吃两次。"},
+            {en:"Do you have health insurance?", cn:"您有健康保险吗？"},
+            {en:"Please fill out this form.", cn:"请填写这张表格。"}
+          ]
+        },
+        {
+          title: "Unit 9 At the Hair Salon 在理发店",
+          subtopics: ["理发", "做发型"],
+          words: [
+            {word:"haircut", phonetic:"/ˈherkʌt/", meaning:"理发"},
+            {word:"salon", phonetic:"/səˈlɑːn/", meaning:"理发店"},
+            {word:"barber", phonetic:"/ˈbɑːrbər/", meaning:"理发师"},
+            {word:"style", phonetic:"/staɪl/", meaning:"发型"},
+            {word:"trim", phonetic:"/trɪm/", meaning:"修剪"},
+            {word:"shampoo", phonetic:"/ʃæmˈpuː/", meaning:"洗发水"},
+            {word:"blow dry", phonetic:"/bloʊ draɪ/", meaning:"吹干"},
+            {word:"color", phonetic:"/ˈkʌlər/", meaning:"染发"},
+            {word:"bangs", phonetic:"/bæŋz/", meaning:"刘海"},
+            {word:"appointment", phonetic:"/əˈpɔɪntmənt/", meaning:"预约"}
+          ],
+          sentences: [
+            {en:"I'd like a haircut, please.", cn:"我想理发。"},
+            {en:"Do you have an appointment?", cn:"您有预约吗？"},
+            {en:"Just a trim, please.", cn:"稍微修一下就好。"},
+            {en:"How short do you want it?", cn:"您想剪多短？"},
+            {en:"Take off about an inch.", cn:"剪掉大约一英寸。"},
+            {en:"I want to try a new style.", cn:"我想尝试一个新发型。"},
+            {en:"Can you trim my bangs?", cn:"能修一下刘海吗？"},
+            {en:"I'd like to color my hair.", cn:"我想染发。"},
+            {en:"Would you like a blow dry?", cn:"您要吹干吗？"},
+            {en:"That looks great!", cn:"看起来很棒！"}
+          ]
+        },
+        {
+          title: "Unit 10 Renting an Apartment 租房",
+          subtopics: ["看房", "签租约"],
+          words: [
+            {word:"apartment", phonetic:"/əˈpɑːrtmənt/", meaning:"公寓"},
+            {word:"rent", phonetic:"/rent/", meaning:"租金"},
+            {word:"lease", phonetic:"/liːs/", meaning:"租约"},
+            {word:"landlord", phonetic:"/ˈlændlɔːrd/", meaning:"房东"},
+            {word:"deposit", phonetic:"/dɪˈpɑːzɪt/", meaning:"押金"},
+            {word:"bedroom", phonetic:"/ˈbedruːm/", meaning:"卧室"},
+            {word:"bathroom", phonetic:"/ˈbæθruːm/", meaning:"浴室"},
+            {word:"furnished", phonetic:"/ˈfɜːrnɪʃt/", meaning:"带家具的"},
+            {word:"utilities", phonetic:"/ˈjuːtɪlɪtiz/", meaning:"水电费"},
+            {word:"move in", phonetic:"/muːv ɪn/", meaning:"搬入"}
+          ],
+          sentences: [
+            {en:"Is this apartment still available?", cn:"这套公寓还出租吗？"},
+            {en:"How much is the rent?", cn:"租金多少？"},
+            {en:"The rent is $1,500 per month.", cn:"月租1500美元。"},
+            {en:"How much is the security deposit?", cn:"押金多少？"},
+            {en:"The deposit is one month's rent.", cn:"押金是一个月房租。"},
+            {en:"Is it furnished?", cn:"有家具吗？"},
+            {en:"Are utilities included?", cn:"包含水电费吗？"},
+            {en:"How long is the lease?", cn:"租约多长？"},
+            {en:"The lease is for one year.", cn:"租约一年。"},
+            {en:"When can I move in?", cn:"我什么时候可以搬入？"}
+          ]
+        }
+      ]
+    },
+    {
+      chapter: "Chapter 3", title: "出行与休闲 Travel & Leisure",
+      units: [
+        {
+          title: "Unit 11 At the Gas Station 在加油站",
+          subtopics: ["加油", "洗车"],
+          words: [
+            {word:"gas station", phonetic:"/ɡæs ˈsteɪʃn/", meaning:"加油站"},
+            {word:"fill up", phonetic:"/fɪl ʌp/", meaning:"加满"},
+            {word:"unleaded", phonetic:"/ʌnˈledɪd/", meaning:"无铅汽油"},
+            {word:"premium", phonetic:"/ˈpriːmiəm/", meaning:"高级汽油"},
+            {word:"pump", phonetic:"/pʌmp/", meaning:"油泵"},
+            {word:"tank", phonetic:"/tæŋk/", meaning:"油箱"},
+            {word:"mileage", phonetic:"/ˈmaɪlɪdʒ/", meaning:"里程数"},
+            {word:"windshield", phonetic:"/ˈwɪndʃiːld/", meaning:"挡风玻璃"},
+            {word:"tire", phonetic:"/ˈtaɪər/", meaning:"轮胎"},
+            {word:"cash or credit", phonetic:"/kæʃ ɔːr ˈkredɪt/", meaning:"现金还是信用卡"}
+          ],
+          sentences: [
+            {en:"Fill it up with unleaded, please.", cn:"请加满无铅汽油。"},
+            {en:"Regular or premium?", cn:"普通还是高级？"},
+            {en:"I'll take regular.", cn:"我要普通的。"},
+            {en:"How much is gas today?", cn:"今天油价多少？"},
+            {en:"It's $3.50 a gallon.", cn:"每加仑3.50美元。"},
+            {en:"Can you check the oil?", cn:"你能检查一下机油吗？"},
+            {en:"Your tire pressure is low.", cn:"您的轮胎气压低了。"},
+            {en:"Will that be cash or credit?", cn:"现金还是信用卡？"},
+            {en:"Credit, please.", cn:"信用卡。"},
+            {en:"Have a nice day!", cn:"祝您愉快！"}
+          ]
+        },
+        {
+          title: "Unit 12 At the Library 在图书馆",
+          subtopics: ["借书", "还书"],
+          words: [
+            {word:"library", phonetic:"/ˈlaɪbreri/", meaning:"图书馆"},
+            {word:"borrow", phonetic:"/ˈbɑːroʊ/", meaning:"借"},
+            {word:"return", phonetic:"/rɪˈtɜːrn/", meaning:"归还"},
+            {word:"due date", phonetic:"/duː deɪt/", meaning:"到期日"},
+            {word:"renew", phonetic:"/rɪˈnuː/", meaning:"续借"},
+            {word:"library card", phonetic:"/ˈlaɪbreri kɑːrd/", meaning:"借书证"},
+            {word:"fine", phonetic:"/faɪn/", meaning:"罚款"},
+            {word:"fiction", phonetic:"/ˈfɪkʃn/", meaning:"小说"},
+            {word:"nonfiction", phonetic:"/ˌnɑːnˈfɪkʃn/", meaning:"非小说"},
+            {word:"reference", phonetic:"/ˈrefrəns/", meaning:"参考书"}
+          ],
+          sentences: [
+            {en:"I'd like to borrow this book.", cn:"我想借这本书。"},
+            {en:"Do you have a library card?", cn:"您有借书证吗？"},
+            {en:"How long can I keep it?", cn:"我能借多久？"},
+            {en:"The due date is May 15th.", cn:"到期日是5月15日。"},
+            {en:"I'd like to return this book.", cn:"我想还这本书。"},
+            {en:"Can I renew this book?", cn:"我能续借这本书吗？"},
+            {en:"There's a $0.25 fine per day.", cn:"每天罚款0.25美元。"},
+            {en:"Where is the fiction section?", cn:"小说区在哪里？"},
+            {en:"This is a reference book.", cn:"这是一本参考书。"},
+            {en:"You can't borrow reference books.", cn:"参考书不能外借。"}
+          ]
+        },
+        {
+          title: "Unit 13 At the Supermarket 在超市",
+          subtopics: ["购物", "结账"],
+          words: [
+            {word:"supermarket", phonetic:"/ˈsuːpərmɑːrkɪt/", meaning:"超市"},
+            {word:"aisle", phonetic:"/aɪl/", meaning:"过道"},
+            {word:"checkout", phonetic:"/ˈtʃekaʊt/", meaning:"结账"},
+            {word:"cart", phonetic:"/kɑːrt/", meaning:"购物车"},
+            {word:"receipt", phonetic:"/rɪˈsiːt/", meaning:"收据"},
+            {word:"fresh", phonetic:"/freʃ/", meaning:"新鲜的"},
+            {word:"frozen", phonetic:"/ˈfroʊzn/", meaning:"冷冻的"},
+            {word:"dairy", phonetic:"/ˈderi/", meaning:"乳制品"},
+            {word:"produce", phonetic:"/ˈprɑːduːs/", meaning:"农产品"},
+            {word:"coupon", phonetic:"/ˈkuːpɑːn/", meaning:"优惠券"}
+          ],
+          sentences: [
+            {en:"Where is the dairy aisle?", cn:"乳制品区在哪里？"},
+            {en:"Is the produce fresh?", cn:"农产品新鲜吗？"},
+            {en:"Do you need a shopping cart?", cn:"您需要购物车吗？"},
+            {en:"Where are the frozen foods?", cn:"冷冻食品在哪里？"},
+            {en:"I have a coupon for this.", cn:"我有这个的优惠券。"},
+            {en:"Paper or plastic?", cn:"纸袋还是塑料袋？"},
+            {en:"I'll use my own bags.", cn:"我用自己的袋子。"},
+            {en:"Keep the receipt, please.", cn:"请保留收据。"},
+            {en:"That comes to $42.50.", cn:"总共42.50美元。"},
+            {en:"I'll pay with a card.", cn:"我用卡付。"}
+          ]
+        },
+        {
+          title: "Unit 14 Asking for Directions 问路",
+          subtopics: ["方向", "距离"],
+          words: [
+            {word:"direction", phonetic:"/dəˈrekʃn/", meaning:"方向"},
+            {word:"turn left", phonetic:"/tɜːrn left/", meaning:"左转"},
+            {word:"turn right", phonetic:"/tɜːrn raɪt/", meaning:"右转"},
+            {word:"straight", phonetic:"/streɪt/", meaning:"直行"},
+            {word:"block", phonetic:"/blɑːk/", meaning:"街区"},
+            {word:"corner", phonetic:"/ˈkɔːrnər/", meaning:"转角"},
+            {word:"intersection", phonetic:"/ˌɪntərˈsekʃn/", meaning:"十字路口"},
+            {word:"crosswalk", phonetic:"/ˈkrɑːswɔːk/", meaning:"人行横道"},
+            {word:"opposite", phonetic:"/ˈɑːpəzɪt/", meaning:"对面的"},
+            {word:"next to", phonetic:"/nekst tuː/", meaning:"隔壁"}
+          ],
+          sentences: [
+            {en:"Excuse me, how do I get to the bank?", cn:"请问，去银行怎么走？"},
+            {en:"Go straight for two blocks.", cn:"直走两个街区。"},
+            {en:"Turn left at the corner.", cn:"在转角处左转。"},
+            {en:"Turn right at the intersection.", cn:"在十字路口右转。"},
+            {en:"It's next to the post office.", cn:"在邮局隔壁。"},
+            {en:"It's opposite the supermarket.", cn:"在超市对面。"},
+            {en:"Use the crosswalk to cross the street.", cn:"走人行横道过马路。"},
+            {en:"Is it far from here?", cn:"离这里远吗？"},
+            {en:"It's about a ten-minute walk.", cn:"走路大约十分钟。"},
+            {en:"You can't miss it.", cn:"您不会错过的。"}
+          ]
+        },
+        {
+          title: "Unit 15 At the Cinema 在电影院",
+          subtopics: ["买票", "观影"],
+          words: [
+            {word:"cinema", phonetic:"/ˈsɪnəmə/", meaning:"电影院"},
+            {word:"movie", phonetic:"/ˈmuːvi/", meaning:"电影"},
+            {word:"ticket", phonetic:"/ˈtɪkɪt/", meaning:"电影票"},
+            {word:"seat", phonetic:"/siːt/", meaning:"座位"},
+            {word:"popcorn", phonetic:"/ˈpɑːpkɔːrn/", meaning:"爆米花"},
+            {word:"soda", phonetic:"/ˈsoʊdə/", meaning:"汽水"},
+            {word:"trailer", phonetic:"/ˈtreɪlər/", meaning:"预告片"},
+            {word:"screen", phonetic:"/skriːn/", meaning:"银幕"},
+            {word:"showtime", phonetic:"/ˈʃoʊtaɪm/", meaning:"放映时间"},
+            {word:"subtitle", phonetic:"/ˈsʌbtaɪtl/", meaning:"字幕"}
+          ],
+          sentences: [
+            {en:"Two tickets for the 7 PM show, please.", cn:"请来两张7点的票。"},
+            {en:"What movies are playing?", cn:"在上映什么电影？"},
+            {en:"What time does the movie start?", cn:"电影几点开始？"},
+            {en:"The showtime is 7:30 PM.", cn:"放映时间是晚上7:30。"},
+            {en:"I'd like a large popcorn and a soda.", cn:"我要一个大爆米花和一杯汽水。"},
+            {en:"Where is screen 3?", cn:"3号厅在哪里？"},
+            {en:"Our seats are in row D.", cn:"我们的座位在D排。"},
+            {en:"Does it have subtitles?", cn:"有字幕吗？"},
+            {en:"The trailers are starting.", cn:"预告片开始了。"},
+            {en:"This is a great movie!", cn:"这部电影太棒了！"}
+          ]
+        }
+      ]
+    }
+  ]
+}
 ];
 
 // ======================== STATE: TEXTBOOK ========================
@@ -2364,6 +3759,8 @@ async function restoreProgress() {
       if (tbIdx >= 0) currentTextbook = tbIdx;
     }
     currentVolume = p.volumeId !== undefined ? p.volumeId : null;
+    const tb = textbooks[currentTextbook];
+    if (tb && tb.hasVolumes && currentVolume === null) currentVolume = 0;
     currentMode = p.mode || 'word';
     updateModeTabs();
     currentChapter = p.chapter;
@@ -2452,6 +3849,12 @@ let currentItemHadError = false;
 let dictationRevealed = false;
 let dictationSubmitted = false;
 let isTransitioning = false;
+
+function getUnitKey(ci, ui) {
+  const tbId = getTextbookId();
+  const volId = (getCurrentTextbook().hasVolumes && currentVolume !== null) ? currentVolume : '';
+  return `${tbId}-${volId}-${ci}-${ui}`;
+}
 let dictationAutoAdvanceTimer = null;
 let dictationRepeatStop = null;
 
@@ -2495,7 +3898,8 @@ function closeSidebar() {
 
 async function switchTextbook(idx) {
   currentTextbook = parseInt(idx);
-  currentVolume = null;
+  const tb = textbooks[currentTextbook];
+  currentVolume = tb && tb.hasVolumes ? 0 : null;
   currentChapter = null;
   currentUnit = null;
   isWrongMode = false;
@@ -2503,6 +3907,19 @@ async function switchTextbook(idx) {
   await updateWrongBadge();
   renderWelcome();
   updateGlobalStats();
+  saveProgress();
+}
+
+async function switchVolume(idx) {
+  currentVolume = parseInt(idx);
+  currentChapter = null;
+  currentUnit = null;
+  isWrongMode = false;
+  renderSidebar();
+  await updateWrongBadge();
+  renderWelcome();
+  updateGlobalStats();
+  saveProgress();
 }
 
 function renderSidebar() {
@@ -2519,8 +3936,26 @@ function renderSidebar() {
   } else {
     selector.innerHTML = '';
   }
-  document.getElementById('sidebar-title').textContent = tb.title;
-  document.getElementById('sidebar-subtitle').textContent = tb.subtitle || '';
+
+  // Render volume selector for multi-volume textbooks
+  const volSelector = document.getElementById('volume-selector');
+  if (tb.hasVolumes && tb.volumes && tb.volumes.length > 0) {
+    volSelector.innerHTML = `<select class="textbook-select" onchange="switchVolume(this.value)">
+      ${tb.volumes.map((v, i) => `<option value="${i}" ${i === currentVolume ? 'selected' : ''}>${v.titleCn} ${v.title}</option>`).join('')}
+    </select>`;
+  } else {
+    volSelector.innerHTML = '';
+  }
+
+  // Update sidebar title/subtitle
+  if (tb.hasVolumes && currentVolume !== null && tb.volumes && tb.volumes[currentVolume]) {
+    const vol = tb.volumes[currentVolume];
+    document.getElementById('sidebar-title').textContent = vol.titleCn;
+    document.getElementById('sidebar-subtitle').textContent = vol.title;
+  } else {
+    document.getElementById('sidebar-title').textContent = tb.title;
+    document.getElementById('sidebar-subtitle').textContent = tb.subtitle || '';
+  }
 
   const units = getCurrentUnits();
   units.forEach((chapter, ci) => {
@@ -2528,7 +3963,7 @@ function renderSidebar() {
     chapterDiv.className = 'chapter-item';
     
     const completedUnits = chapter.units.filter((_, ui) => 
-      unitProgress[`${ci}-${ui}`] === 'done'
+      unitProgress[getUnitKey(ci, ui)] === 'done'
     ).length;
     
     chapterDiv.innerHTML = `
@@ -2536,12 +3971,12 @@ function renderSidebar() {
         <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M9 18l6-6-6-6"/>
         </svg>
-        <span>${chapter.chapter}: ${chapter.title.split(' ').slice(1).join(' ')}</span>
+        <span>${chapter.chapter}: ${chapter.title}</span>
         <span class="chapter-progress">${completedUnits}/${chapter.units.length}</span>
       </div>
       <div class="unit-list">
         ${chapter.units.map((unit, ui) => {
-          const key = `${ci}-${ui}`;
+          const key = getUnitKey(ci, ui);
           const isDone = unitProgress[key] === 'done';
           return `<div class="unit-item ${isDone ? 'completed' : ''}" role="button" tabindex="0" onclick="selectUnit(${ci}, ${ui})">
             <div class="unit-check"></div>
@@ -3899,7 +5334,7 @@ function renderResults() {
   const accuracy = totalKeystrokes > 0 ? Math.round((correctKeystrokes / totalKeystrokes) * 100) : 100;
   
   if (!isWrongMode) {
-    const key = `${currentChapter}-${currentUnit}`;
+    const key = getUnitKey(currentChapter, currentUnit);
     if (accuracy >= 80) {
       unitProgress[key] = 'done';
       renderSidebar();
@@ -4003,7 +5438,7 @@ function renderWelcome(savedProgress) {
   area.innerHTML = `
     <div class="welcome-screen">
       ${resumeBtn}
-      <h2>${tb.title}</h2>
+      <h2>${tb.hasVolumes && currentVolume !== null && tb.volumes[currentVolume] ? tb.volumes[currentVolume].titleCn + ' ' + tb.volumes[currentVolume].title : tb.title}</h2>
       <p>通过打字练习强化英语单词和句子的记忆。<br>
       共 <strong style="color:var(--accent-hover)">${units.length}</strong> 章、<strong style="color:var(--accent-hover)">${units.reduce((s,c)=>s+c.units.length,0)}</strong> 个单元、<strong style="color:var(--accent-hover)">${totalWords}</strong> 个单词、<strong style="color:var(--accent-hover)">${totalSentences}</strong> 个例句。</p>
       <div class="welcome-features">
