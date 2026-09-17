@@ -942,7 +942,20 @@ button {
 }
 .btn-manage:hover { border-color: var(--accent); color: var(--accent-hover); }
 
-.manage-panel { padding: 16px; max-width: 940px; width: 100%; margin: auto; flex-shrink: 0; }
+.practice-area.manage-mode {
+  justify-content: flex-start;
+  align-items: flex-start;
+  padding-top: 0;
+  padding-bottom: 32px;
+}
+.manage-panel { padding: 0 16px 32px; max-width: 940px; width: 100%; margin: 0 auto; flex-shrink: 0; }
+.manage-sticky {
+  position: sticky; top: 0; z-index: 30;
+  background: var(--bg);
+  margin: 0 -16px 12px;
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid var(--border);
+}
 .manage-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
 .manage-head h3 { margin: 0; font-size: 18px; }
 .manage-tip { font-size: 12px; color: var(--text-faint); margin-bottom: 12px; line-height: 1.6; }
@@ -968,6 +981,10 @@ button {
 .mg-btn { padding: 4px 8px; font-size: 12px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--text); cursor: pointer; }
 .mg-btn:hover { border-color: var(--accent); color: var(--accent-hover); }
 .mg-btn.danger:hover { border-color: var(--error); color: var(--error); }
+.mg-btn.primary { border-color: var(--accent); background: var(--accent-dim); color: #fff; padding: 6px 12px; font-size: 13px; }
+.mg-btn.primary:hover { background: var(--accent); color: #fff; }
+.mg-row.mg-deleted { opacity: 0.55; border-style: dashed; }
+.mg-issue.deleted { color: var(--error); }
 .mg-empty { text-align: center; color: var(--text-faint); padding: 30px; font-size: 14px; }
 
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.65); display: flex; align-items: center; justify-content: center; z-index: 500; padding: 16px; }
@@ -999,6 +1016,7 @@ button {
   .btn-manage .mg-label { display: none; }
   .mg-row { flex-direction: column; }
   .mg-ops { width: 100%; }
+  .manage-sticky { margin: 0 -16px 10px; padding: 12px 16px 10px; }
 }
 </style>
 </head>
@@ -4504,6 +4522,7 @@ async function saveProgress() {
 
 async function restoreProgress() {
   if (!currentUser || !db) return;
+  if (document.getElementById('manage-panel')) return; // 内容管理面板打开时不覆盖它
   const p = await dbGet('progress', currentUser.email);
   if (p && p.chapter !== null && p.chapter !== undefined) {
     if (p.textbookId) {
@@ -5634,6 +5653,7 @@ async function startPractice(startIndex) {
 
 function renderPractice() {
   const area = document.getElementById('practice-area');
+  area.classList.remove('manage-mode');
   
   if (practiceItems.length === 0) {
     area.innerHTML = `<div class="empty-state"><h3>暂无练习内容</h3><p>请选择其他单元</p></div>`;
@@ -6262,6 +6282,7 @@ function updateGlobalStats() {
 
 function renderWelcome(savedProgress) {
   const area = document.getElementById('practice-area');
+  area.classList.remove('manage-mode');
   const tb = getCurrentTextbook();
   const units = getCurrentUnits();
   const totalWords = units.reduce((sum, ch) => sum + ch.units.reduce((s, u) => s + u.words.length, 0), 0);
@@ -6376,7 +6397,7 @@ window.addEventListener('error', function(e) {
 // ======================== 内容管理：纠错 / 新增 / 自动填充 ========================
 let pristineTextbooks = null;
 let overrideDocs = [];
-let manageState = { tb: 0, vol: null, ci: 0, ui: 0, q: '', onlyIssue: false };
+let manageState = { tb: 0, vol: null, ci: 0, ui: 0, q: '', onlyIssue: false, showDeleted: false };
 let manageRows = [];
 let editState = null;
 
@@ -6567,7 +6588,8 @@ function openContentManager() {
     ci: currentChapter === null ? 0 : currentChapter,
     ui: currentUnit === null ? 0 : currentUnit,
     q: '',
-    onlyIssue: false
+    onlyIssue: false,
+    showDeleted: false
   };
   renderContentManager();
 }
@@ -6612,6 +6634,30 @@ function renderContentManager() {
     if (manageState.onlyIssue && !issues.length) return;
     rows.push({ kind: 'sentence', data: s, issues, key: patchKeyFor('sentence', s, doc) });
   });
+
+  // 已删除的条目：单独列出，方便一键还原
+  if (doc && manageState.showDeleted) {
+    (doc.words || []).forEach(p => {
+      if (!p.deleted) return;
+      if (unit.words.some(w => w.word === p.orig)) return;
+      const hay = (p.orig + ' ' + (p.meaning || '')).toLowerCase();
+      if (q && hay.indexOf(q) < 0) return;
+      rows.push({
+        kind: 'word', deleted: true, issues: [], key: p.orig,
+        data: { word: p.word || p.orig, phonetic: p.phonetic || '', meaning: p.meaning || '' }
+      });
+    });
+    (doc.sentences || []).forEach(p => {
+      if (!p.deleted) return;
+      if (unit.sentences.some(s => s.en === p.orig)) return;
+      const hay = (p.orig + ' ' + (p.cn || '')).toLowerCase();
+      if (q && hay.indexOf(q) < 0) return;
+      rows.push({
+        kind: 'sentence', deleted: true, issues: [], key: p.orig,
+        data: { en: p.en || p.orig, cn: p.cn || '' }
+      });
+    });
+  }
   manageRows = rows;
 
   const totalIssues = (() => {
@@ -6621,14 +6667,25 @@ function renderContentManager() {
     return n;
   })();
 
+  area.classList.add('manage-mode');
   area.innerHTML = `
     <div class="manage-panel" id="manage-panel">
-      <div class="manage-head">
-        <h3>内容管理 · 纠错 / 新增</h3>
-        <div class="mg-ops">
-          <button class="mg-btn" onclick="exportOverrides()">导出修订</button>
-          <button class="mg-btn" onclick="importOverrides()">导入修订</button>
-          <button class="mg-btn" onclick="closeContentManager()">返回练习</button>
+      <div class="manage-sticky">
+        <div class="manage-head">
+          <h3>内容管理 · 纠错 / 新增</h3>
+          <div class="mg-ops">
+            <button class="mg-btn" onclick="exportOverrides()">导出修订</button>
+            <button class="mg-btn" onclick="importOverrides()">导入修订</button>
+            <button class="mg-btn" onclick="closeContentManager()">返回练习</button>
+          </div>
+        </div>
+        <div class="manage-bar">
+          <button class="mg-btn primary" onclick="openItemEditor('word', null, null, 'word')">＋ 新增单词</button>
+          <button class="mg-btn primary" onclick="openItemEditor('word', null, null, 'phrase')">＋ 新增短语</button>
+          <button class="mg-btn primary" onclick="openItemEditor('sentence', null)">＋ 新增句子</button>
+          <label class="manage-count"><input type="checkbox" ${manageState.onlyIssue ? 'checked' : ''} onchange="onManageIssueOnly(this.checked)"> 仅看有问题的</label>
+          <label class="manage-count"><input type="checkbox" ${manageState.showDeleted ? 'checked' : ''} onchange="onManageShowDeleted(this.checked)"> 显示已删除</label>
+          <span class="manage-count">共 ${unit.words.length} 词 / ${unit.sentences.length} 句${totalIssues ? `，发现 ${totalIssues} 处待修正` : '，未发现问题'}${doc ? '（本单元已有修订）' : ''}</span>
         </div>
       </div>
       <div class="manage-tip">
@@ -6652,13 +6709,6 @@ function renderContentManager() {
         <input id="mg-q" type="text" placeholder="搜索英文 / 中文 / 音标" value="${escHtml(manageState.q)}" oninput="onManageSearch(this.value)">
       </div>
 
-      <div class="manage-bar">
-        <button class="mg-btn" onclick="openItemEditor('word', null)">+ 新增单词 / 短语</button>
-        <button class="mg-btn" onclick="openItemEditor('sentence', null)">+ 新增句子</button>
-        <label class="manage-count"><input type="checkbox" ${manageState.onlyIssue ? 'checked' : ''} onchange="onManageIssueOnly(this.checked)"> 仅看有问题的</label>
-        <span class="manage-count">共 ${unit.words.length} 词 / ${unit.sentences.length} 句${totalIssues ? `，发现 ${totalIssues} 处待修正` : '，未发现问题'}${doc ? '（本单元已有修订）' : ''}</span>
-      </div>
-
       <div class="manage-list">
         ${rows.length ? rows.map((r, i) => {
           const d = r.data;
@@ -6668,18 +6718,24 @@ function renderContentManager() {
             ? `${d.phonetic || '（无音标）'} · ${d.meaning || '（无释义）'}${(d.examples && d.examples.length) ? ' · ' + d.examples.length + ' 例句' : ''}`
             : (d.cn || '（无中文）');
           const isEdited = r.key !== null && r.key !== undefined;
-          const badge = kind === 'word' ? (d.type || (/\s/.test(String(d.word)) ? '短语' : '单词')) : '句子';
-          return `<div class="mg-row ${r.issues.length ? 'has-issue' : ''}">
+          const badge = r.deleted
+            ? '已删除'
+            : (kind === 'word' ? (d.type || (/\s/.test(String(d.word)) ? '短语' : '单词')) : '句子');
+          return `<div class="mg-row ${r.deleted ? 'mg-deleted' : ''} ${!r.deleted && r.issues.length ? 'has-issue' : ''}">
             <span class="mg-badge ${isEdited ? 'new' : ''}">${badge}</span>
             <div class="mg-main">
               <div class="mg-en">${escHtml(text)}</div>
               <div class="mg-sub">${escHtml(sub)}</div>
-              ${r.issues.length ? `<div class="mg-issue">⚠ ${escHtml(r.issues.join('；'))}</div>` : ''}
+              ${r.deleted
+                ? `<div class="mg-issue deleted">已删除（本单元）</div>`
+                : (r.issues.length ? `<div class="mg-issue">⚠ ${escHtml(r.issues.join('；'))}</div>` : '')}
             </div>
             <div class="mg-ops">
-              <button class="mg-btn" onclick="openItemEditorByRow(${i})">编辑</button>
-              ${isEdited ? `<button class="mg-btn" onclick="revertItemByRow(${i})">还原</button>` : ''}
-              <button class="mg-btn danger" onclick="deleteItemByRow(${i})">删除</button>
+              ${r.deleted
+                ? `<button class="mg-btn" onclick="revertItemByRow(${i})">还原</button>`
+                : `<button class="mg-btn" onclick="openItemEditorByRow(${i})">编辑</button>
+                   ${isEdited ? `<button class="mg-btn" onclick="revertItemByRow(${i})">还原</button>` : ''}
+                   <button class="mg-btn danger" onclick="deleteItemByRow(${i})">删除</button>`}
             </div>
           </div>`;
         }).join('') : `<div class="mg-empty">没有匹配的内容</div>`}
@@ -6723,6 +6779,10 @@ function onManageIssueOnly(v) {
   manageState.onlyIssue = v;
   renderContentManager();
 }
+function onManageShowDeleted(v) {
+  manageState.showDeleted = v;
+  renderContentManager();
+}
 function openItemEditorByRow(i) {
   const r = manageRows[i];
   if (!r) return;
@@ -6738,7 +6798,7 @@ async function revertItemByRow(i) {
   if (!r) return;
   await saveUnitPatch(manageScope(), doc => {
     const list = r.kind === 'word' ? doc.words : doc.sentences;
-    const idx = list.findIndex(p => p.orig === r.key);
+    const idx = list.findIndex(p => p.orig === r.key || (r.kind === 'word' ? p.word : p.en) === r.key);
     if (idx >= 0) list.splice(idx, 1);
   });
   toast('已还原为原始内容');
@@ -6746,6 +6806,10 @@ async function revertItemByRow(i) {
 }
 
 function closeContentManager() {
+  const areaEl = document.getElementById('practice-area');
+  areaEl.classList.remove('manage-mode');
+  const panelEl = document.getElementById('manage-panel');
+  if (panelEl) panelEl.remove();
   if (practiceItems.length && currentChapter !== null && !isWrongMode) {
     syncCurrentPracticeItem();
     renderPractice();
@@ -6757,7 +6821,7 @@ function closeContentManager() {
 }
 
 /* ---------- 编辑弹窗 ---------- */
-function openItemEditor(kind, origText, scope) {
+function openItemEditor(kind, origText, scope, presetType) {
   const sc = scope || (document.getElementById('manage-panel') ? manageScope() : currentScope());
   let data = null;
   const unit = getUnitByScope(sc.tbId, sc.vol, sc.ci, sc.ui);
@@ -6771,7 +6835,7 @@ function openItemEditor(kind, origText, scope) {
     kind,
     orig: isNew ? null : origText,
     scope: sc,
-    type: (data && data.type) || (data && /\s/.test(String(data.word)) ? 'phrase' : 'word')
+    type: presetType || (data && data.type) || (data && /\s/.test(String(data.word)) ? 'phrase' : 'word')
   };
 
   const title = (isNew ? '新增' : '编辑') + (kind === 'word' ? '单词 / 短语' : '句子');
@@ -6903,8 +6967,9 @@ async function saveItemEdit() {
   if (kind === 'sentence') {
     await saveUnitPatch(editState.scope, doc => {
       const list = doc.sentences;
-      const i = list.findIndex(p => p.orig === origKey);
-      const rec = { orig: origKey, en, cn, deleted: false };
+      const i = list.findIndex(p => p.orig === origKey || p.en === origKey);
+      const key = i >= 0 ? list[i].orig : origKey;
+      const rec = { orig: key, en, cn, deleted: false };
       if (i >= 0) list[i] = rec; else list.push(rec);
     });
   } else {
@@ -6913,8 +6978,9 @@ async function saveItemEdit() {
     const type = (document.getElementById('ed-type') || {}).value || editState.type;
     await saveUnitPatch(editState.scope, doc => {
       const list = doc.words;
-      const i = list.findIndex(p => p.orig === origKey);
-      const rec = { orig: origKey, word: en, phonetic: ph, meaning: cn, examples: ex, type, deleted: false };
+      const i = list.findIndex(p => p.orig === origKey || p.word === origKey);
+      const key = i >= 0 ? list[i].orig : origKey;
+      const rec = { orig: key, word: en, phonetic: ph, meaning: cn, examples: ex, type, deleted: false };
       if (i >= 0) list[i] = rec; else list.push(rec);
     });
   }
@@ -6927,10 +6993,13 @@ async function deleteItem(kind, text) {
   if (!confirm('确定删除「' + text + '」吗？可在内容管理中「还原」。')) return;
   await saveUnitPatch(manageScope(), doc => {
     const list = kind === 'word' ? doc.words : doc.sentences;
-    const i = list.findIndex(p => p.orig === text);
-    const rec = kind === 'word' ? { orig: text, word: text, deleted: true } : { orig: text, en: text, deleted: true };
+    const i = list.findIndex(p => p.orig === text || (kind === 'word' ? p.word : p.en) === text);
+    const key = i >= 0 ? list[i].orig : text;
+    const rec = kind === 'word' ? { orig: key, word: text, deleted: true } : { orig: key, en: text, deleted: true };
     if (i >= 0) list[i] = rec; else list.push(rec);
   });
+  // 删除后自动展开「已删除」，方便立即撤销
+  if (document.getElementById('manage-panel')) manageState.showDeleted = true;
   toast('已删除');
   refreshAfterContentChange();
 }
@@ -6938,7 +7007,7 @@ async function deleteItem(kind, text) {
 async function revertItem(kind, key) {
   await saveUnitPatch(manageScope(), doc => {
     const list = kind === 'word' ? doc.words : doc.sentences;
-    const i = list.findIndex(p => p.orig === key);
+    const i = list.findIndex(p => p.orig === key || (kind === 'word' ? p.word : p.en) === key);
     if (i >= 0) list.splice(i, 1);
   });
   closeModal();
@@ -6952,7 +7021,7 @@ async function revertCurrentEditor() {
   const key = editState.orig;
   await saveUnitPatch(editState.scope, doc => {
     const list = kind === 'word' ? doc.words : doc.sentences;
-    const i = list.findIndex(p => p.orig === key);
+    const i = list.findIndex(p => p.orig === key || (kind === 'word' ? p.word : p.en) === key);
     if (i >= 0) list.splice(i, 1);
   });
   closeModal();
