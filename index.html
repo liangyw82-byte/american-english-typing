@@ -1010,6 +1010,48 @@ button {
 .ex-item { margin: 4px 0; font-size: 13px; }
 .ex-item .ex-cn { color: var(--text-dim); font-size: 12px; }
 
+/* ---------- 打字差异比对（移植 Anki typeanswer 的 对/错/漏 三色） ---------- */
+.type-diff { margin: 10px auto 0; width: 100%; max-width: 660px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-input); padding: 10px 12px; }
+.td-row { display: flex; align-items: flex-start; gap: 8px; }
+.td-row + .td-row { margin-top: 6px; }
+.td-tag { flex: 0 0 54px; font-size: 11px; color: var(--text-faint); padding-top: 4px; text-align: right; }
+.td-line { flex: 1; font-family: Menlo, Consolas, 'SF Mono', monospace; font-size: 18px; line-height: 1.7; white-space: pre-wrap; word-break: break-word; }
+.td-line span { border-radius: 2px; padding: 0 1px; }
+.tGood { color: #bbf7d0; background: rgba(34,197,94,0.18); }
+.tBad { color: #fecaca; background: rgba(239,68,68,0.30); text-decoration: underline wavy rgba(248,113,113,.55); }
+.tMissed { color: #e5e7eb; background: rgba(156,163,175,0.28); }
+.tIgnored { color: var(--text-faint); }
+.td-summary { margin-top: 8px; font-size: 12px; color: var(--text-dim); text-align: center; }
+
+/* ---------- 错题集：间隔重复评分 / 顽固词 ---------- */
+.rate-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.action-row.rate-mode { flex-direction: column; align-items: center; gap: 8px; }
+.rate-btn { padding: 8px 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-hover); color: var(--text); cursor: pointer; font-size: 13px; text-align: center; }
+.rate-btn small { display: block; font-size: 11px; color: var(--text-faint); margin-top: 2px; }
+.rate-btn:hover { border-color: var(--accent); }
+.rate-btn.again:hover { border-color: var(--error); }
+.rate-btn.good { border-color: rgba(34,197,94,.45); }
+.rate-btn.easy { border-color: rgba(99,102,241,.45); }
+.leech-badge { display: inline-block; margin-left: 6px; padding: 2px 8px; border-radius: 999px; font-size: 11px; background: rgba(245,158,11,.16); color: var(--warning); border: 1px solid rgba(245,158,11,.35); }
+.sched-hint { font-size: 12px; color: var(--text-faint); margin-top: 6px; text-align: center; }
+
+/* ---------- 容错设置 ---------- */
+.tol-row { display: flex; align-items: flex-start; gap: 10px; padding: 9px 0; border-bottom: 1px dashed var(--border); }
+.tol-row:last-of-type { border-bottom: none; }
+.tol-row input { margin-top: 2px; width: 16px; height: 16px; accent-color: var(--accent); flex-shrink: 0; }
+.tol-row label { font-size: 13px; cursor: pointer; flex: 1; }
+.tol-row .tol-desc { display: block; font-size: 11px; color: var(--text-faint); margin-top: 2px; }
+.tol-sample { font-family: Menlo, Consolas, monospace; font-size: 13px; color: var(--text-dim); background: var(--bg-input); border-radius: 8px; padding: 8px 10px; margin-top: 10px; line-height: 1.6; }
+
+/* ---------- 批量导入 ---------- */
+.imp-preview { max-height: 220px; overflow: auto; border: 1px solid var(--border); border-radius: 8px; margin-top: 4px; }
+.imp-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.imp-table th, .imp-table td { padding: 5px 8px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+.imp-table th { color: var(--text-faint); font-weight: 500; position: sticky; top: 0; background: var(--bg-card); }
+.imp-table td.dup { color: var(--warning); }
+.imp-table td.skip { color: var(--text-faint); }
+.imp-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+
 .toast { position: fixed; left: 50%; bottom: 48px; transform: translateX(-50%); background: #000; color: #fff; padding: 10px 18px; border-radius: 8px; z-index: 800; font-size: 14px; box-shadow: var(--shadow); }
 
 @media (max-width: 640px) {
@@ -1087,6 +1129,7 @@ button {
       <button class="mode-tab" data-mode="wrong">错题集</button>
     </div>
     <div class="topbar-right">
+      <button class="btn-manage" onclick="openToleranceSettings()" title="打字容错：忽略大小写 / 标点符号 / 重音">⚙️<span class="mg-label"> 容错</span></button>
       <button class="btn-manage" onclick="openContentManager()" title="内容管理：纠正音标/释义、新增单词短语句子">✏️<span class="mg-label"> 内容管理</span></button>
     </div>
   </div>
@@ -4523,6 +4566,9 @@ async function saveProgress() {
 async function restoreProgress() {
   if (!currentUser || !db) return;
   if (document.getElementById('manage-panel')) return; // 内容管理面板打开时不覆盖它
+  // 用户已经手动选了单元开始练习：IndexedDB 是异步打开的，
+  // 不能用旧进度把正在进行的练习覆盖掉
+  if (practiceItems.length && currentChapter !== null) return;
   const p = await dbGet('progress', currentUser.email);
   if (p && p.chapter !== null && p.chapter !== undefined) {
     if (p.textbookId) {
@@ -4543,18 +4589,42 @@ async function restoreProgress() {
   }
 }
 
-// ======================== WRONG ITEMS (错题集) ========================
+// ======================== WRONG ITEMS (错题集 + 间隔重复) ========================
 const CORRECT_THRESHOLD = 3;
+const LEECH_THRESHOLD = 8;          // 错够 8 次 → 顽固词（置顶 + 高亮）
+const LEARN_STEPS_MIN = [1, 10];    // 学习步骤（分钟）：1 分钟 → 10 分钟 → 毕业
+const GRAD_GOOD_DAYS = 1;           // 毕业后「记住了」的间隔（天）
+const GRAD_EASY_DAYS = 4;           // 「很简单」的间隔（天）
+const DAY_MS = 86400000;
 let wrongItemsList = [];
 let isWrongMode = false;
+let wrongPracticeAll = false;       // 忽略到期时间，练习全部
+
+function wrongIdOf(item) {
+  return currentUser.email + '|' + getTextbookId() + '|' + item.display;
+}
+
+// 老数据没有调度字段，这里补齐默认值
+function normalizeWrong(w) {
+  if (!w) return w;
+  if (typeof w.step !== 'number') w.step = 0;
+  if (typeof w.ease !== 'number') w.ease = 2.5;
+  if (typeof w.interval !== 'number') w.interval = 0;
+  if (typeof w.reps !== 'number') w.reps = 0;
+  if (typeof w.lapses !== 'number') w.lapses = 0;
+  if (typeof w.due !== 'number') w.due = w.addedAt || Date.now();
+  w.leech = !!w.leech || w.lapses >= LEECH_THRESHOLD;
+  return w;
+}
 
 async function addWrongItem(item) {
   if (!currentUser || !db) return;
   const tbId = getTextbookId();
   const id = currentUser.email + '|' + tbId + '|' + item.display;
-  const existing = await dbGet('wrongItems', id);
+  const existing = normalizeWrong(await dbGet('wrongItems', id));
+  const now = Date.now();
   if (!existing) {
-    await dbPut('wrongItems', {
+    await dbPut('wrongItems', normalizeWrong({
       id: id,
       email: currentUser.email,
       textbookId: tbId,
@@ -4562,9 +4632,36 @@ async function addWrongItem(item) {
       phonetic: item.phonetic || '',
       translation: item.translation || '',
       type: item.type || 'word',
-      addedAt: Date.now()
-    });
+      examples: item.examples || [],
+      addedAt: now,
+      step: 0, ease: 2.5, interval: 0, reps: 0, lapses: 0, due: now
+    }));
+  } else {
+    // 又错了一次：遗忘次数 +1，回到第一步并立刻重新排队
+    existing.lapses = (existing.lapses || 0) + 1;
+    existing.step = 0;
+    existing.interval = 0;
+    existing.due = now;
+    existing.leech = existing.lapses >= LEECH_THRESHOLD;
+    await dbPut('wrongItems', existing);
   }
+  await updateWrongBadge();
+}
+
+// 错题集内答错（显示答案 / 模糊 / 跳过）
+async function recordWrongAnswer(item) {
+  if (!currentUser || !db || !item) return;
+  const now = Date.now();
+  let rec = item._w;
+  if (!rec) rec = normalizeWrong(await dbGet('wrongItems', wrongIdOf(item)));
+  if (!rec) { await addWrongItem(item); return; }
+  rec.lapses = (rec.lapses || 0) + 1;
+  rec.step = 0;
+  rec.interval = 0;
+  rec.due = now + LEARN_STEPS_MIN[0] * 60000;
+  rec.leech = rec.lapses >= LEECH_THRESHOLD;
+  await dbPut('wrongItems', rec);
+  item._w = rec;
   await updateWrongBadge();
 }
 
@@ -4581,25 +4678,101 @@ async function loadWrongItems() {
   if (!currentUser || !db) return [];
   const tbId = getTextbookId();
   const all = await dbGetAll('wrongItems');
-  wrongItemsList = all.filter(w => w.email === currentUser.email && (w.textbookId === tbId || (!w.textbookId && tbId === 'american-daily')));
+  wrongItemsList = all
+    .filter(w => w.email === currentUser.email && (w.textbookId === tbId || (!w.textbookId && tbId === 'american-daily')))
+    .map(normalizeWrong);
   return wrongItemsList;
+}
+
+// 到期需要复习的：顽固词优先，其次越早到期越靠前
+function dueWrongItems() {
+  const now = Date.now();
+  return wrongItemsList
+    .filter(w => w.due <= now)
+    .sort((a, b) => (b.leech ? 1 : 0) - (a.leech ? 1 : 0) || (a.due - b.due));
+}
+
+function allWrongSorted() {
+  return wrongItemsList.slice().sort((a, b) => (b.leech ? 1 : 0) - (a.leech ? 1 : 0) || (a.due - b.due));
+}
+
+function formatInterval(ms) {
+  if (ms <= 0) return '现在';
+  if (ms < 3600000) return Math.max(1, Math.round(ms / 60000)) + ' 分钟后';
+  if (ms < DAY_MS) return Math.max(1, Math.round(ms / 3600000)) + ' 小时后';
+  const d = ms / DAY_MS;
+  if (d < 30) return Math.round(d) + ' 天后';
+  if (d < 365) return Math.round(d / 30) + ' 个月后';
+  return (d / 365).toFixed(1) + ' 年后';
+}
+
+// 根据当前状态算出各评分对应的下次复习时间（毫秒后）
+function previewRatings(w) {
+  const now = Date.now();
+  const r = normalizeWrong(Object.assign({}, w));
+  let again = LEARN_STEPS_MIN[0] * 60000;
+  let good, easy;
+  if (r.step === 0) good = LEARN_STEPS_MIN[1] * 60000;
+  else if (r.step === 1) good = GRAD_GOOD_DAYS * DAY_MS;
+  else good = Math.max(1, Math.round((r.interval || 1) * r.ease)) * DAY_MS;
+  easy = r.step >= 2
+    ? Math.max(GRAD_EASY_DAYS, Math.round((r.interval || 1) * r.ease * 1.3)) * DAY_MS
+    : GRAD_EASY_DAYS * DAY_MS;
+  return { again: again, good: good, easy: easy };
+}
+
+// 应用评分（again / good / easy），返回更新后的记录（SM-2 简化版）
+async function applyWrongRating(id, rating) {
+  const w = normalizeWrong(await dbGet('wrongItems', id));
+  if (!w) return null;
+  const now = Date.now();
+  if (rating === 'again') {
+    w.lapses = (w.lapses || 0) + 1;
+    w.step = 0;
+    w.interval = 0;
+    w.due = now + LEARN_STEPS_MIN[0] * 60000;
+  } else if (rating === 'good') {
+    if (w.step === 0) { w.step = 1; w.due = now + LEARN_STEPS_MIN[1] * 60000; }
+    else if (w.step === 1) { w.step = 2; w.interval = GRAD_GOOD_DAYS; w.due = now + w.interval * DAY_MS; }
+    else { w.interval = Math.max(1, Math.round((w.interval || 1) * w.ease)); w.due = now + w.interval * DAY_MS; }
+    w.reps = (w.reps || 0) + 1;
+  } else {
+    if (w.step < 2) { w.step = 2; w.interval = GRAD_EASY_DAYS; }
+    else { w.interval = Math.max(GRAD_EASY_DAYS, Math.round((w.interval || 1) * w.ease * 1.3)); }
+    w.ease = Math.min(3.0, (w.ease || 2.5) + 0.15);
+    w.reps = (w.reps || 0) + 1;
+    w.due = now + w.interval * DAY_MS;
+  }
+  w.leech = (w.lapses || 0) >= LEECH_THRESHOLD;
+  await dbPut('wrongItems', w);
+  await updateWrongBadge();
+  return w;
 }
 
 async function updateWrongBadge() {
   await loadWrongItems();
+  const due = dueWrongItems();
   const badge = document.getElementById('wrong-badge');
   if (badge) {
-    badge.textContent = wrongItemsList.length;
-    badge.classList.toggle('empty', wrongItemsList.length === 0);
+    badge.textContent = due.length;
+    badge.classList.toggle('empty', due.length === 0);
   }
+  const btn = document.querySelector('.btn-wrong-items');
+  if (btn) btn.title = `共 ${wrongItemsList.length} 条错题，${due.length} 条已到复习时间`;
 }
 
 function openWrongItems() {
   if (currentMode !== 'wrong' && currentChapter !== null) {
     saveProgress();
   }
+  wrongPracticeAll = false;
   currentMode = 'wrong';
   updateModeTabs();
+  startPractice();
+}
+
+function practiceAllWrongItems() {
+  wrongPracticeAll = true;
   startPractice();
 }
 
@@ -4778,9 +4951,12 @@ async function selectUnit(ci, ui) {
   document.querySelectorAll('.unit-item').forEach(el => el.classList.remove('active'));
   
   const chapterDiv = document.querySelectorAll('.chapter-item')[ci];
-  chapterDiv.classList.add('expanded');
-  const unitItems = chapterDiv.querySelectorAll('.unit-item');
-  unitItems[ui].classList.add('active');
+  // 侧栏结构与当前教材不一致时（切换教材 / 侧栏尚未展开）不要中断练习
+  if (chapterDiv) {
+    chapterDiv.classList.add('expanded');
+    const unitItems = chapterDiv.querySelectorAll('.unit-item');
+    if (unitItems[ui]) unitItems[ui].classList.add('active');
+  }
   
   const breadcrumb = document.getElementById('breadcrumb');
   breadcrumb.innerHTML = `${chapter.chapter} > <span>${unit.title}</span>`;
@@ -5590,32 +5766,234 @@ function speakText(text, rate, onEnd) {
   }
 }
 
+// ======================== 打字比对：差异高亮 + 容错 ========================
+// 算法移植自 Anki 的 rslib/src/typeanswer.rs：把「你输入的」和「正确答案」做序列比对，
+// 分成 good / bad / missed 三类，漏掉的位置用 - 占位，提交后一次看清错在哪。
+const TOL_STORE_KEY = 'typeTolerance';
+let tolerance = { ignoreCase: false, ignorePunct: false, ignoreAccents: false };
+try {
+  const saved = JSON.parse(localStorage.getItem(TOL_STORE_KEY) || '{}');
+  if (saved && typeof saved === 'object') tolerance = Object.assign(tolerance, saved);
+} catch (e) { /* ignore */ }
+
+let lastTyped = '';
+const PUNCT_CHARS = /[.,!?;:'"“”‘’`()\[\]{}<>《》\-–—…·、。，！？；：]/;
+
+function foldChar(c) {
+  let s = (typeof c.normalize === 'function') ? c.normalize('NFC') : String(c);
+  if (tolerance.ignoreAccents && typeof s.normalize === 'function') {
+    s = s.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  }
+  if (tolerance.ignoreCase) s = s.toLowerCase();
+  return s;
+}
+
+// 位置敏感的字符比对（打字过程中的即时着色用）
+function charEqual(a, b) { return foldChar(a) === foldChar(b); }
+
+// 判定「算不算对」时可忽略标点、折叠大小写与重音
+function normalizeForAccept(s) {
+  let out = '';
+  Array.from(String(s == null ? '' : s).normalize('NFC')).forEach(c => {
+    if (tolerance.ignorePunct && PUNCT_CHARS.test(c)) return;
+    out += foldChar(c);
+  });
+  return out.replace(/\s+/g, ' ').trim();
+}
+
+function isAnswerMatch(typed, target) {
+  return normalizeForAccept(typed) === normalizeForAccept(target);
+}
+
+// 最长公共子序列：把两边匹配上的字符对齐，剩下的就是「错」和「漏」
+function lcsMatch(a, b, pairByA, pairByB) {
+  const n = a.length, m = b.length;
+  if (!n || !m) return;
+  const W = m + 1;
+  const dp = new Int32Array((n + 1) * W);
+  for (let i = n - 1; i >= 0; i--) {
+    for (let j = m - 1; j >= 0; j--) {
+      dp[i * W + j] = (a[i] === b[j])
+        ? dp[(i + 1) * W + (j + 1)] + 1
+        : Math.max(dp[(i + 1) * W + j], dp[i * W + (j + 1)]);
+    }
+  }
+  let i = 0, j = 0;
+  while (i < n && j < m) {
+    if (a[i] === b[j]) { pairByA[i] = j; pairByB[j] = i; i++; j++; }
+    else if (dp[(i + 1) * W + j] >= dp[i * W + (j + 1)]) i++;
+    else j++;
+  }
+}
+
+function buildTypeDiff(expected, typed) {
+  expected = String(expected == null ? '' : expected).normalize('NFC');
+  typed = String(typed == null ? '' : typed).normalize('NFC');
+  const expChars = Array.from(expected);
+  const expKeep = [], expFold = [], typKeep = [], typFold = [];
+  expChars.forEach(c => {
+    if (tolerance.ignorePunct && PUNCT_CHARS.test(c)) return;
+    expKeep.push(c); expFold.push(foldChar(c));
+  });
+  Array.from(typed).forEach(c => {
+    if (tolerance.ignorePunct && PUNCT_CHARS.test(c)) return;
+    typKeep.push(c); typFold.push(foldChar(c));
+  });
+
+  const pairByExp = new Array(expFold.length).fill(-1);
+  const pairByTyp = new Array(typFold.length).fill(-1);
+  lcsMatch(expFold, typFold, pairByExp, pairByTyp);
+
+  const typedLine = [], expectedLine = [];
+  let k = 0, j = 0;
+  for (let e = 0; e < expChars.length; e++) {
+    const ch = expChars[e];
+    if (tolerance.ignorePunct && PUNCT_CHARS.test(ch)) {
+      expectedLine.push({ cls: 'ignored', ch: ch });
+      continue;
+    }
+    const i = k++;
+    const pj = pairByExp[i];
+    if (pj < 0) {
+      typedLine.push({ cls: 'missed', ch: '-' });
+      expectedLine.push({ cls: 'missed', ch: ch });
+    } else {
+      while (j < pj) {
+        if (pairByTyp[j] < 0) typedLine.push({ cls: 'bad', ch: typKeep[j] });
+        j++;
+      }
+      typedLine.push({ cls: 'good', ch: typKeep[pj] });
+      expectedLine.push({ cls: 'good', ch: ch });
+      j = pj + 1;
+    }
+  }
+  while (j < typKeep.length) {
+    if (pairByTyp[j] < 0) typedLine.push({ cls: 'bad', ch: typKeep[j] });
+    j++;
+  }
+  return { typedLine: typedLine, expectedLine: expectedLine };
+}
+
+function renderDiffLine(tokens) {
+  const clsMap = { good: 'tGood', bad: 'tBad', missed: 'tMissed', ignored: 'tIgnored' };
+  return tokens.map(t => `<span class="${clsMap[t.cls] || ''}">${t.ch === ' ' ? '&nbsp;' : escHtml(t.ch)}</span>`).join('');
+}
+
+function renderTypeDiff(el, expected, typed) {
+  if (!el) return;
+  if (!typed) { el.innerHTML = ''; el.style.display = 'none'; return; }
+  const d = buildTypeDiff(expected, typed);
+  const bad = d.typedLine.filter(t => t.cls === 'bad').length;
+  const missed = d.typedLine.filter(t => t.cls === 'missed').length;
+  el.style.display = '';
+  el.innerHTML = `
+    <div class="type-diff">
+      <div class="td-row"><span class="td-tag">你输入的</span><div class="td-line">${renderDiffLine(d.typedLine)}</div></div>
+      <div class="td-row"><span class="td-tag">正确答案</span><div class="td-line">${renderDiffLine(d.expectedLine)}</div></div>
+      <div class="td-summary">${(!bad && !missed) ? '完全一致，全部打对' : `打错 ${bad} 处 · 漏打 ${missed} 处`}</div>
+    </div>`;
+}
+
+function setTolerance(key, val) {
+  tolerance[key] = !!val;
+  try { localStorage.setItem(TOL_STORE_KEY, JSON.stringify(tolerance)); } catch (e) { /* ignore */ }
+  const sample = document.getElementById('tol-sample');
+  if (sample) sample.innerHTML = toleranceSampleHtml();
+  // 立即用新规则重画当前输入
+  if (practiceItems.length && document.getElementById('typing-input')) {
+    if (currentMode === 'dictation' || isWrongMode) renderDictationDisplay(document.getElementById('typing-input').value);
+    else renderWordDisplay(document.getElementById('typing-input').value);
+  }
+}
+
+function toleranceSampleHtml() {
+  const exp = "Don't stop — café!";
+  const typ = 'dont stop cafe';
+  const ok = isAnswerMatch(typ, exp);
+  return `正确答案：${escHtml(exp)}<br>你输入　：${escHtml(typ)}<br>当前判定：${ok ? '算对' : '算错'}`;
+}
+
+function openToleranceSettings() {
+  const old = document.getElementById('tolerance-modal');
+  if (old) old.remove();
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.id = 'tolerance-modal';
+  const rows = [
+    ['ignoreCase', '忽略大小写', 'Hello 打成 hello 也算对'],
+    ['ignorePunct', '忽略标点符号', "don't 打成 dont、句末少了句号也算对（听写句子时建议开）"],
+    ['ignoreAccents', '忽略重音符号', 'café 打成 cafe 也算对']
+  ];
+  overlay.innerHTML = `
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <h3>打字容错设置</h3>
+      <div class="modal-sub">只影响「算不算对」的判定和差异高亮，正确率统计仍按你实际敲的键计算</div>
+      ${rows.map(r => `
+        <div class="tol-row">
+          <input type="checkbox" id="tol-${r[0]}" ${tolerance[r[0]] ? 'checked' : ''} onchange="setTolerance('${r[0]}', this.checked)">
+          <label for="tol-${r[0]}">${r[1]}<span class="tol-desc">${r[2]}</span></label>
+        </div>`).join('')}
+      <div class="tol-sample" id="tol-sample">${toleranceSampleHtml()}</div>
+      <div class="modal-ops">
+        <button class="btn btn-primary" onclick="closeToleranceSettings()">完成</button>
+      </div>
+    </div>`;
+  overlay.addEventListener('click', closeToleranceSettings);
+  overlay._onKey = function (e) { if (e.key === 'Escape') closeToleranceSettings(); };
+  document.addEventListener('keydown', overlay._onKey);
+  document.body.appendChild(overlay);
+}
+
+function closeToleranceSettings() {
+  const m = document.getElementById('tolerance-modal');
+  if (m) {
+    if (m._onKey) document.removeEventListener('keydown', m._onKey);
+    m.remove();
+  }
+}
+
 // ======================== PRACTICE ========================
 function renderWrongItemsEmpty() {
   const area = document.getElementById('practice-area');
-  area.innerHTML = `<div class="empty-state"><h3>错题集为空</h3><p>练习中出错的单词或句子会自动加入错题集，确认掌握后可手动移除</p></div>`;
+  const total = wrongItemsList.length;
+  if (total > 0) {
+    const next = Math.min.apply(null, wrongItemsList.map(w => w.due || 0));
+    const leechCount = wrongItemsList.filter(w => w.leech).length;
+    area.innerHTML = `<div class="empty-state">
+      <h3>今天的错题都复习完了</h3>
+      <p>共 ${total} 条错题${leechCount ? `，其中 ${leechCount} 条是顽固词` : ''}<br>
+      下一次复习时间：${next > Date.now() ? formatInterval(next - Date.now()) : '现在'}</p>
+      <div class="action-row" style="justify-content:center">
+        <button class="btn btn-primary" onclick="practiceAllWrongItems()">仍然练习全部 (${total})</button>
+        <button class="btn" onclick="switchToWord()">返回学习</button>
+      </div>
+    </div>`;
+    return;
+  }
+  area.innerHTML = `<div class="empty-state"><h3>错题集为空</h3><p>练习中出错的单词或句子会自动加入错题集，按记忆曲线安排复习（1 分钟 → 10 分钟 → 1 天 → 几天），确认掌握后可手动移除</p></div>`;
 }
 
 async function startPractice(startIndex) {
   if (currentMode === 'wrong') {
     isWrongMode = true;
     await loadWrongItems();
-    if (wrongItemsList.length === 0) {
+    const list = wrongPracticeAll ? allWrongSorted() : dueWrongItems();
+    if (list.length === 0) {
       renderWrongItemsEmpty();
       return;
     }
-    practiceItems = wrongItemsList.map(w => ({
+    // 到期早的排前面，顽固词置顶（不再随机打乱，保证记忆曲线生效）
+    practiceItems = list.map(w => ({
       display: w.display,
       phonetic: w.phonetic,
       translation: w.translation,
       type: w.type,
-      examples: w.examples || []
+      examples: w.examples || [],
+      _w: w
     }));
-    for (let i = practiceItems.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [practiceItems[i], practiceItems[j]] = [practiceItems[j], practiceItems[i]];
-    }
-    document.getElementById('breadcrumb').innerHTML = `错题集 (<span>${wrongItemsList.length}</span>题)`;
+    const rest = wrongItemsList.length - list.length;
+    document.getElementById('breadcrumb').innerHTML =
+      `错题集 (<span>${list.length}</span>题${rest > 0 ? ` · 另有 ${rest} 条未到期` : ''})`;
   } else {
     isWrongMode = false;
     if (currentChapter === null) return;
@@ -5677,7 +6055,12 @@ function renderPractice() {
 
   let wrongInfoHtml = '';
   if (isWrongMode) {
-    wrongInfoHtml = `<div class="wrong-mode-hint">错题集练习 · 确认已掌握后可手动移除</div>`;
+    const w = item._w;
+    const leech = (w && w.leech) ? `<span class="leech-badge">🔥 顽固词 · 已错 ${w.lapses} 次</span>` : '';
+    const sched = w
+      ? `<div class="sched-hint">已错 ${w.lapses || 0} 次 · 复习 ${w.reps || 0} 次${w.interval ? ` · 当前间隔 ${w.interval} 天` : ' · 还在短时记忆阶段'}</div>`
+      : '';
+    wrongInfoHtml = `<div class="wrong-mode-hint">错题集练习 · 答对后按记忆曲线安排下次复习${leech}</div>${sched}`;
   }
 
   const examplesHtml = (currentMode === 'word' && item.examples && item.examples.length) ? `
@@ -5728,6 +6111,7 @@ function renderPractice() {
           <div class="sentence-chinese">${item.translation || ''}</div>
         </div>
       `}
+      <div id="type-diff" style="display:none"></div>
       <div class="input-area">
         <input type="text" class="typing-input" id="typing-input"
                placeholder="\u5728\u6b64\u8f93\u5165..." autocomplete="off" autofocus>
@@ -5744,6 +6128,10 @@ function renderPractice() {
       </div>
     </div>
   `;
+
+  lastTyped = '';
+  const diffBox = document.getElementById('type-diff');
+  if (diffBox) { diffBox.innerHTML = ''; diffBox.style.display = 'none'; }
 
   if (currentMode === 'dictation' || isWrongMode) {
     dictationRevealed = false;
@@ -5770,7 +6158,7 @@ function renderWordDisplay(typed) {
   for (let i = 0; i < target.length; i++) {
     let cls = 'pending';
     if (i < typed.length) {
-      if (typed[i] === target[i]) {
+      if (charEqual(typed[i], target[i])) {
         cls = 'correct';
       } else {
         cls = 'incorrect';
@@ -5806,7 +6194,7 @@ function renderDictationDisplay(typed) {
     for (let i = 0; i < target.length; i++) {
       let cls = 'pending';
       if (i < typed.length) {
-        cls = typed[i] === target[i] ? 'correct' : 'incorrect';
+        cls = charEqual(typed[i], target[i]) ? 'correct' : 'incorrect';
       } else if (i === typed.length) {
         cls = 'current';
       }
@@ -5814,9 +6202,9 @@ function renderDictationDisplay(typed) {
     }
   } else {
     for (let i = 0; i < typed.length; i++) {
-      let cls = typed[i] === target[i] ? 'correct' : 'incorrect';
+      let cls = charEqual(typed[i], target[i]) ? 'correct' : 'incorrect';
       let ch = i < target.length ? (target[i] === ' ' ? '&nbsp;' : target[i]) : typed[i];
-      if (typed[i] !== target[i] && i < target.length) {
+      if (!charEqual(typed[i], target[i]) && i < target.length) {
         html += `<span class="char incorrect">${typed[i] === ' ' ? '&nbsp;' : typed[i]}</span>`;
       } else {
         html += `<span class="char ${cls}">${ch}</span>`;
@@ -5830,9 +6218,11 @@ function renderDictationDisplay(typed) {
 }
 
 function playCurrentAudio() {
+  const item = practiceItems[currentIndex];
+  if (!item) return;   // 题目已切换 / 已结束时（自动播放是延迟触发的）直接跳过
   warmUpSpeech();
-  const text = practiceItems[currentIndex].display;
-  const isSentence = practiceItems[currentIndex].type === 'sentence';
+  const text = item.display;
+  const isSentence = item.type === 'sentence';
   speakText(text, isSentence ? 0.85 : 0.75);
   const btn = document.getElementById('btn-play');
   if (btn) {
@@ -5846,6 +6236,8 @@ async function markFuzzy() {
   const item = practiceItems[currentIndex];
   if (!isWrongMode) {
     await addWrongItem(item);
+  } else {
+    await recordWrongAnswer(item);
   }
   // Show answer and mark as had error
   dictationSubmitted = true;
@@ -5861,6 +6253,7 @@ async function markFuzzy() {
     }
     display.innerHTML = html;
   }
+  renderTypeDiff(document.getElementById('type-diff'), item.display, lastTyped);
   const info = document.getElementById('dictation-info');
   if (info) info.style.display = 'block';
 
@@ -5878,7 +6271,7 @@ async function markFuzzy() {
   const area = document.getElementById('practice-area');
   const actionRow = area.querySelector('.action-row');
   if (actionRow) {
-    actionRow.innerHTML = `<div class="fuzzy-notice">已加入错题集</div><button class="btn btn-primary" onclick="advanceToNext()">\u4e0b\u4e00\u4e2a</button>`;
+    actionRow.innerHTML = `<div class="fuzzy-notice">${isWrongMode ? '已记为答错，1 分钟后再练一次' : '已加入错题集'}</div><button class="btn btn-primary" onclick="advanceToNext()">下一个</button>`;
   }
 
   if (synth) synth.cancel();
@@ -5886,7 +6279,7 @@ async function markFuzzy() {
   setTimeout(() => { isTransitioning = false; }, 300);
 }
 
-function revealDictation() {
+async function revealDictation() {
   dictationRevealed = true;
   const display = document.getElementById('dictation-display');
   if (display) display.classList.add('revealed');
@@ -5894,6 +6287,7 @@ function revealDictation() {
   if (info) info.style.display = 'block';
 
   const target = practiceItems[currentIndex].display;
+  renderTypeDiff(document.getElementById('type-diff'), target, lastTyped);
   const input = document.getElementById('typing-input');
   if (input) {
     input.classList.add('incorrect');
@@ -5914,6 +6308,8 @@ function revealDictation() {
     dictationSubmitted = true;
     if (!isWrongMode) {
       addWrongItem(practiceItems[currentIndex]);
+    } else {
+      await recordWrongAnswer(practiceItems[currentIndex]);
     }
   }
 }
@@ -5925,6 +6321,7 @@ function handleInput(e) {
   const input = e.target;
   const typed = input.value;
   const target = practiceItems[currentIndex].display;
+  lastTyped = typed;
 
   if (currentMode === 'dictation' || isWrongMode) {
     renderDictationDisplay(typed);
@@ -5934,7 +6331,7 @@ function handleInput(e) {
 
   if (typed.length > 0 && typed.length <= target.length) {
     totalKeystrokes++;
-    if (typed[typed.length - 1] === target[typed.length - 1]) {
+    if (charEqual(typed[typed.length - 1], target[typed.length - 1])) {
       correctKeystrokes++;
     } else {
       incorrectChars++;
@@ -5945,10 +6342,10 @@ function handleInput(e) {
   
   updateStats();
   
-  if (typed === target) {
+  if (isAnswerMatch(typed, target)) {
     handleCorrect();
   } else {
-    if (typed.length > 0 && typed.length <= target.length && typed[typed.length - 1] !== target[typed.length - 1]) {
+    if (typed.length > 0 && typed.length <= target.length && !charEqual(typed[typed.length - 1], target[typed.length - 1])) {
       input.classList.add('incorrect');
     } else {
       input.classList.remove('incorrect');
@@ -5993,15 +6390,29 @@ async function handleCorrect() {
 
   if (currentMode === 'dictation' || isWrongMode) {
     showDictationResult(item);
+  } else if (currentItemHadError) {
+    // 这一题打错过：先停一下把「对 / 错 / 漏」的对比显示出来，再自动进入下一个
+    renderTypeDiff(document.getElementById('type-diff'), word, lastTyped);
+    if (input) input.classList.remove('incorrect');
+    setTimeout(() => { if (isTransitioning) advanceToNext(); }, 1500);
   } else {
     advanceToNext();
   }
+}
+
+// 错题集：给本次作答打分（again / good / easy），按记忆曲线安排下次复习
+async function rateWrongItem(rating) {
+  const item = practiceItems[currentIndex];
+  if (item && item._w) await applyWrongRating(item._w.id, rating);
+  advanceToNext();
 }
 
 function showDictationResult(item) {
   const display = document.getElementById('dictation-display');
   const info = document.getElementById('dictation-info');
   const area = document.getElementById('practice-area');
+
+  renderTypeDiff(document.getElementById('type-diff'), item.display, lastTyped);
 
   if (display) {
     display.classList.add('revealed');
@@ -6023,9 +6434,17 @@ function showDictationResult(item) {
   const actionRow = area.querySelector('.action-row');
   if (actionRow) {
     if (isWrongMode) {
-      actionRow.innerHTML = `<button class="btn btn-success" id="btn-mastered" onclick="handleMasteredWrongItem()">✓ 我已经会了，移除</button><div class="dictation-result-timer" id="dictation-timer">${DICTATION_RESULT_SECONDS}\u79d2\u540e\u81ea\u52a8\u4e0b\u4e00\u4e2a</div><button class="btn btn-primary" onclick="advanceToNext()">\u7acb\u5373\u4e0b\u4e00\u4e2a</button>`;
+      const pv = previewRatings(item._w || { step: 0, ease: 2.5, interval: 0 });
+      actionRow.classList.add('rate-mode');
+      actionRow.innerHTML = `<div class="rate-row">
+          <button class="rate-btn again" onclick="rateWrongItem('again')">🔁 没记住<small>${formatInterval(pv.again)}再来</small></button>
+          <button class="rate-btn good" onclick="rateWrongItem('good')">✅ 记住了<small>${formatInterval(pv.good)}复习</small></button>
+          <button class="rate-btn easy" onclick="rateWrongItem('easy')">😎 很简单<small>${formatInterval(pv.easy)}复习</small></button>
+          <button class="btn btn-success" onclick="handleMasteredWrongItem()">✓ 完全掌握，移除</button>
+        </div>
+        <div class="dictation-result-timer" id="dictation-timer">${DICTATION_RESULT_SECONDS} 秒后按「记住了」自动下一个</div>`;
     } else {
-      actionRow.innerHTML = `<div class="dictation-result-timer" id="dictation-timer">${DICTATION_RESULT_SECONDS}\u79d2\u540e\u81ea\u52a8\u4e0b\u4e00\u4e2a</div><button class="btn btn-primary" onclick="advanceToNext()">\u7acb\u5373\u4e0b\u4e00\u4e2a</button>`;
+      actionRow.innerHTML = `<div class="dictation-result-timer" id="dictation-timer">${DICTATION_RESULT_SECONDS} 秒后自动下一个</div><button class="btn btn-primary" onclick="advanceToNext()">立即下一个</button>`;
     }
   }
 
@@ -6048,10 +6467,10 @@ function showDictationResult(item) {
   const timerEl = document.getElementById('dictation-timer');
   dictationAutoAdvanceTimer = setInterval(() => {
     countdown--;
-    if (timerEl) timerEl.textContent = countdown + '\u79d2\u540e\u81ea\u52a8\u4e0b\u4e00\u4e2a';
+    if (timerEl) timerEl.textContent = countdown + (isWrongMode ? ' 秒后按「记住了」自动下一个' : ' 秒后自动下一个');
     if (countdown <= 0) {
       keepRepeating = false;
-      advanceToNext();
+      if (isWrongMode) rateWrongItem('good'); else advanceToNext();
     }
   }, 1000);
 
@@ -6119,6 +6538,7 @@ function advanceToNext() {
   if (!isWrongMode) saveProgress();
 
   if (isWrongMode && currentIndex >= practiceItems.length) {
+    wrongPracticeAll = false;   // 一轮练完，回到「只练到期」的节奏
     startPractice();
     return;
   }
@@ -6128,8 +6548,12 @@ function advanceToNext() {
 
 async function skipItem() {
   if (isTransitioning) return;
-  if (!isWrongMode && currentItemHadError && !dictationSubmitted) {
-    await addWrongItem(practiceItems[currentIndex]);
+  if (currentItemHadError && !dictationSubmitted) {
+    if (isWrongMode) {
+      await recordWrongAnswer(practiceItems[currentIndex]);
+    } else {
+      await addWrongItem(practiceItems[currentIndex]);
+    }
   }
   if (dictationAutoAdvanceTimer) {
     clearInterval(dictationAutoAdvanceTimer);
@@ -6674,6 +7098,7 @@ function renderContentManager() {
         <div class="manage-head">
           <h3>内容管理 · 纠错 / 新增</h3>
           <div class="mg-ops">
+            <button class="mg-btn" onclick="openBulkImport()">批量导入</button>
             <button class="mg-btn" onclick="exportOverrides()">导出修订</button>
             <button class="mg-btn" onclick="importOverrides()">导入修订</button>
             <button class="mg-btn" onclick="closeContentManager()">返回练习</button>
@@ -7282,6 +7707,303 @@ async function importOverrides() {
     }
   };
   input.click();
+}
+
+/* ---------- 批量导入：CSV / TXT 单词表 ---------- */
+// 借鉴 Anki 的导入设计：分隔符自动识别 → 表头识别 → 列映射 → 先预览再确认
+let importState = null;
+
+function splitRow(line, d) {
+  const out = [];
+  let cur = '', inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') {
+      if (inQ && line[i + 1] === '"') { cur += '"'; i++; }
+      else inQ = !inQ;
+    } else if (!inQ && c === d) {
+      out.push(cur); cur = '';
+    } else {
+      cur += c;
+    }
+  }
+  out.push(cur);
+  return out.map(s => s.trim());
+}
+
+function splitBySpace(line) {
+  let parts = line.split(/\t+/);
+  if (parts.length < 2) parts = line.split(/\s{2,}/);
+  if (parts.length < 2) {
+    const toks = line.trim().split(/\s+/);
+    if (toks.length <= 2) {
+      parts = toks;
+    } else {
+      // 多个空格分隔时，最后一个「含中文」的词块当作中文列，前面整段当作英文
+      let cut = -1;
+      for (let i = toks.length - 1; i >= 0; i--) {
+        if (/[\u4e00-\u9fff]/.test(toks[i])) { cut = i; break; }
+      }
+      parts = cut > 0
+        ? [toks.slice(0, cut).join(' '), toks.slice(cut).join(' ')]
+        : [toks[0], toks.slice(1).join(' ')];
+    }
+  }
+  return parts.map(s => s.trim());
+}
+
+function detectDelim(lines) {
+  const sample = lines.slice(0, 12);
+  const cands = ['\t', ',', ';', '|'];
+  let best = null, bestScore = 0;
+  cands.forEach(d => {
+    const counts = sample.map(l => l.split(d).length - 1);
+    const withIt = counts.filter(n => n > 0).length;
+    if (!withIt) return;
+    const min = Math.min.apply(null, counts.filter(n => n > 0));
+    const score = withIt * 100 + min;
+    if (score > bestScore) { bestScore = score; best = d; }
+  });
+  if (best) return best;
+  return sample.some(l => /\s/.test(l.trim())) ? 'space' : ',';
+}
+
+function looksLikeHeader(cells) {
+  return cells.some(c => /^(en|english|word|words|term|phrase|vocab|单词|英文|phonetic|ipa|音标|cn|zh|chinese|中文|释义|意思|meaning|translation|翻译)/i.test(String(c).trim()));
+}
+
+function autoMap(headerCells, hasHeader, sampleRow) {
+  let en = 0, ph = -1, cn = 1;
+  const row = hasHeader ? headerCells : (sampleRow || []);
+  if (hasHeader) {
+    row.forEach((c, i) => {
+      const s = String(c).toLowerCase();
+      if (/^(en|english|word|words|term|phrase|vocab|单词|英文)/.test(s)) en = i;
+      else if (/^(phonetic|ipa|音标|发音|pron)/.test(s)) ph = i;
+      else if (/^(cn|zh|chinese|中文|释义|意思|meaning|translation|翻译)/.test(s)) cn = i;
+    });
+  } else {
+    // 无表头：第二列看着像音标（/.../ 或 [...]）就当成音标列
+    const n = row.length;
+    if (n >= 2 && /^[/[]/.test(String(row[1] || '').trim())) { ph = 1; cn = n >= 3 ? 2 : -1; }
+    else if (n >= 3) { cn = 1; }
+  }
+  return { en: en, ph: ph, cn: cn };
+}
+
+function parseImportText() {
+  const st = importState;
+  const lines = st.text.replace(/\r\n?/g, '\n').split('\n').filter(l => l.trim() !== '');
+  if (!lines.length) { st.cells = []; st.rows = []; st.delimUsed = 'auto'; return; }
+  const delim = (st.delim === 'auto') ? detectDelim(lines) : st.delim;
+  st.delimUsed = delim;
+  let cells = lines.map(l => (delim === 'space' ? splitBySpace(l) : splitRow(l, delim)));
+  if (!st.headerTouched) st.header = looksLikeHeader(cells[0] || []);
+  const dataCells = st.header ? cells.slice(1) : cells;
+  st.headerCells = cells[0] || [];
+  st.cells = dataCells;
+  st.map = autoMap(st.headerCells, st.header, dataCells[0]);
+  rebuildImportRows();
+}
+
+function rebuildImportRows() {
+  const st = importState;
+  st.rows = (st.cells || []).map(c => ({
+    en: st.map.en >= 0 ? (c[st.map.en] || '') : '',
+    ph: st.map.ph >= 0 ? (c[st.map.ph] || '') : '',
+    cn: st.map.cn >= 0 ? (c[st.map.cn] || '') : ''
+  })).filter(r => r.en);
+}
+
+function importScope() {
+  const st = importState;
+  const tb = textbooks[st.tb];
+  return { tbId: tb.id, vol: tb.hasVolumes ? st.vol : null, ci: st.ci, ui: st.ui };
+}
+
+function importRowsWithState() {
+  const st = importState;
+  const sc = importScope();
+  const unit = getUnitByScope(sc.tbId, sc.vol, sc.ci, sc.ui) || { words: [], sentences: [] };
+  const exist = new Set(unit.words.map(w => String(w.word || '').toLowerCase()));
+  const existS = new Set(unit.sentences.map(s => String(s.en || '').toLowerCase()));
+  return st.rows.map(r => {
+    const isSentence = st.kind === 'sentence' || (st.kind === 'auto' && /[.!?]$/.test(r.en) && r.en.split(/\s+/).length >= 4);
+    return {
+      en: r.en, ph: r.ph, cn: r.cn, sentence: isSentence,
+      dup: isSentence ? existS.has(r.en.toLowerCase()) : exist.has(r.en.toLowerCase())
+    };
+  });
+}
+
+function openBulkImport() {
+  closeBulkImport();
+  const panel = !!document.getElementById('manage-panel');
+  importState = {
+    tb: panel ? manageState.tb : currentTextbook,
+    vol: panel ? manageState.vol : currentVolume,
+    ci: panel ? manageState.ci : (currentChapter === null ? 0 : currentChapter),
+    ui: panel ? manageState.ui : (currentUnit === null ? 0 : currentUnit),
+    delim: 'auto', header: true, headerTouched: false, kind: 'auto',
+    text: '', cells: null, rows: [], map: { en: 0, ph: -1, cn: 1 }
+  };
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.id = 'bulk-import';
+  overlay.innerHTML = `<div class="modal-card" id="bulk-import-card" onclick="event.stopPropagation()"></div>`;
+  overlay.addEventListener('click', closeBulkImport);
+  overlay._onKey = function (e) { if (e.key === 'Escape') closeBulkImport(); };
+  document.addEventListener('keydown', overlay._onKey);
+  document.body.appendChild(overlay);
+  renderBulkImport();
+}
+
+function closeBulkImport() {
+  const m = document.getElementById('bulk-import');
+  if (m) {
+    if (m._onKey) document.removeEventListener('keydown', m._onKey);
+    m.remove();
+  }
+  importState = null;
+}
+
+function renderBulkImport() {
+  const card = document.getElementById('bulk-import-card');
+  if (!card || !importState) return;
+  const st = importState;
+  const tb = textbooks[st.tb];
+  const units = getUnitsOf(st.tb, st.vol);
+  const chapter = units[st.ci] || units[0];
+  const cols = (st.cells && st.cells.length) ? Math.max.apply(null, st.cells.map(c => c.length)) : 0;
+  const colOpts = sel => {
+    let s = `<option value="-1" ${sel === -1 ? 'selected' : ''}>（无）</option>`;
+    for (let i = 0; i < cols; i++) s += `<option value="${i}" ${i === sel ? 'selected' : ''}>第 ${i + 1} 列</option>`;
+    return s;
+  };
+  const delimLabel = { auto: '自动识别', ',': '逗号 ,', ';': '分号 ;', '\t': '制表符 Tab', '|': '竖线 |', space: '空格' };
+  const parsed = st.cells !== null;
+  const preview = parsed ? importRowsWithState() : [];
+  const okCount = preview.filter(r => !r.dup).length;
+
+  card.innerHTML = `
+    <h3>批量导入单词 / 短语 / 句子</h3>
+    <div class="modal-sub">支持 CSV / TXT：每行一条，列之间用逗号、制表符、分号或竖线分隔；也可以直接从 Excel 复制粘贴</div>
+
+    <div class="mg-field">
+      <label>选择文件（.csv / .txt / .tsv）</label>
+      <input type="file" id="imp-file" accept=".csv,.txt,.tsv,text/csv,text/plain" onchange="onImportFile(this)">
+    </div>
+    <div class="mg-field">
+      <label>或直接粘贴内容</label>
+      <textarea id="imp-text" rows="7" placeholder="alarm clock,/əˈlɑːrm klɑːk/,闹钟&#10;make up,/meɪk ʌp/,化妆" oninput="importState.text=this.value">${escHtml(st.text)}</textarea>
+    </div>
+
+    <div class="imp-grid">
+      <div class="mg-field">
+        <label>分隔符</label>
+        <select id="imp-delim" onchange="importState.delim=this.value; parseImportText(); renderBulkImport();">
+          ${Object.keys(delimLabel).map(k => `<option value="${k}" ${st.delim === k ? 'selected' : ''}>${delimLabel[k]}</option>`).join('')}
+        </select>
+      </div>
+      <div class="mg-field">
+        <label>导入为</label>
+        <select id="imp-kind" onchange="importState.kind=this.value; renderBulkImport();">
+          <option value="auto" ${st.kind === 'auto' ? 'selected' : ''}>自动判断（长句 → 句子）</option>
+          <option value="word" ${st.kind === 'word' ? 'selected' : ''}>单词 / 短语</option>
+          <option value="sentence" ${st.kind === 'sentence' ? 'selected' : ''}>句子</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="mg-field">
+      <label style="display:flex;align-items:center;gap:8px;color:var(--text)">
+        <input type="checkbox" style="width:auto" ${st.header ? 'checked' : ''} onchange="importState.headerTouched=true; importState.header=this.checked; parseImportText(); renderBulkImport();">
+        首行是表头${parsed && st.delimUsed ? `（已按「${delimLabel[st.delimUsed] || st.delimUsed}」解析，共 ${st.cells.length} 行）` : ''}
+      </label>
+    </div>
+
+    ${parsed && cols ? `
+      <div class="imp-grid">
+        <div class="mg-field"><label>英文列</label><select onchange="importState.map.en=parseInt(this.value); rebuildImportRows(); renderBulkImport();">${colOpts(st.map.en)}</select></div>
+        <div class="mg-field"><label>音标列</label><select onchange="importState.map.ph=parseInt(this.value); rebuildImportRows(); renderBulkImport();">${colOpts(st.map.ph)}</select></div>
+        <div class="mg-field"><label>中文列</label><select onchange="importState.map.cn=parseInt(this.value); rebuildImportRows(); renderBulkImport();">${colOpts(st.map.cn)}</select></div>
+        <div class="mg-field"><label>导入到单元</label>
+          <select onchange="onImportUnitChange(this.value)">
+            ${units.map((c, i) => `<option value="${i}" ${i === st.ci ? 'selected' : ''}>${c.chapter}: ${c.title}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="mg-field">
+        <label>单元</label>
+        <select onchange="importState.ui=parseInt(this.value); renderBulkImport();">
+          ${chapter.units.map((u, i) => `<option value="${i}" ${i === st.ui ? 'selected' : ''}>${u.title}</option>`).join('')}
+        </select>
+      </div>
+      <div class="mg-field">
+        <label>预览（前 10 条，共 ${st.rows.length} 条，可导入 ${okCount} 条）</label>
+        <div class="imp-preview">
+          <table class="imp-table">
+            <tr><th style="width:28px">#</th><th>英文</th><th>音标</th><th>中文</th></tr>
+            ${preview.slice(0, 10).map((r, i) => `<tr>
+              <td>${i + 1}</td>
+              <td class="${r.dup ? 'dup' : ''}">${escHtml(r.en)}${r.dup ? '（已存在）' : ''}</td>
+              <td>${escHtml(r.ph)}</td>
+              <td>${escHtml(r.cn)}</td>
+            </tr>`).join('')}
+          </table>
+        </div>
+      </div>
+    ` : ''}
+
+    <div class="mg-status" id="imp-status">${parsed ? (st.rows.length ? `解析到 ${st.rows.length} 条，其中 ${okCount} 条可导入` : '没有解析出内容，请检查分隔符或列映射') : '粘贴内容或选择文件后点击「解析预览」'}</div>
+    <div class="modal-ops">
+      <button class="btn btn-primary" onclick="parseImportText(); renderBulkImport();">解析预览</button>
+      <button class="btn btn-primary" onclick="confirmBulkImport()" ${!okCount ? 'disabled' : ''}>确认导入 ${okCount ? '(' + okCount + ')' : ''}</button>
+      <button class="btn" onclick="closeBulkImport()">取消</button>
+    </div>`;
+}
+
+function onImportFile(input) {
+  const f = input.files && input.files[0];
+  if (!f || !importState) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    importState.text = String(reader.result || '');
+    importState.headerTouched = false;
+    parseImportText();
+    renderBulkImport();
+  };
+  reader.readAsText(f, 'utf-8');
+}
+
+function onImportUnitChange(ci) {
+  importState.ci = parseInt(ci);
+  importState.ui = 0;
+  renderBulkImport();
+}
+
+async function confirmBulkImport() {
+  const st = importState;
+  if (!st) return;
+  const rows = importRowsWithState().filter(r => !r.dup && r.en);
+  if (!rows.length) return;
+  const scope = importScope();
+  await saveUnitPatch(scope, doc => {
+    rows.forEach(r => {
+      if (r.sentence) {
+        doc.sentences.push({ orig: newItemKey(), en: r.en, cn: r.cn, deleted: false });
+      } else {
+        doc.words.push({
+          orig: newItemKey(), word: r.en, phonetic: r.ph || '', meaning: r.cn || '',
+          examples: [], type: /\s/.test(r.en) ? 'phrase' : 'word', deleted: false
+        });
+      }
+    });
+  });
+  const skipped = st.rows.length - rows.length;
+  closeBulkImport();
+  toast(`已导入 ${rows.length} 条${skipped ? `，跳过 ${skipped} 条重复` : ''}`);
+  refreshAfterContentChange();
 }
 
 // Start
