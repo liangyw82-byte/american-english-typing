@@ -6930,7 +6930,9 @@ async function applyOverrides() {
     if (!unit) return;
     (doc.words || []).forEach(p => {
       const idx = unit.words.findIndex(w => w.word === p.orig);
-      const rec = { word: p.word, phonetic: p.phonetic || '', meaning: p.meaning || '', examples: p.examples || [] };
+      // 修订里没填音标时沿用教材原有的音标，避免被空值覆盖
+      const oldPh = idx >= 0 ? (unit.words[idx].phonetic || '') : '';
+      const rec = { word: p.word, phonetic: p.phonetic || oldPh, meaning: p.meaning || '', examples: p.examples || [] };
       if (p.type) rec.type = p.type;
       if (idx >= 0) {
         if (p.deleted) { unit.words.splice(idx, 1); return; }
