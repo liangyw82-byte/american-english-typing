@@ -1141,6 +1141,7 @@ button {
 </div>
 
 <script src="ocr-words.js"></script>
+<script src="wordbooks.js"></script>
 <script>
 // ======================== BOOK DATA ========================
 const textbooks = [
@@ -4827,6 +4828,43 @@ let dictationRepeatStop = null;
       have.add(k);
       unit.words.push({ word: it.w, phonetic: it.p || '', meaning: it.m || '', examples: [] });
     });
+  });
+})();
+
+/* ---------- 分级词库：按考试分类生成独立教材（中考→GRE） ---------- */
+(function mergeWordbooks() {
+  const list = window.WORDBOOKS;
+  if (!list || !list.length) return;
+  const SIZE = 40;
+  const byCat = [];
+  list.forEach(b => {
+    let cat = byCat.find(c => c.name === b.cat);
+    if (!cat) { cat = { name: b.cat, books: [] }; byCat.push(cat); }
+    cat.books.push(b);
+  });
+  const chapters = byCat.map(cat => {
+    const units = [];
+    cat.books.forEach(book => {
+      const ws = book.words || [];
+      for (let i = 0; i < ws.length; i += SIZE) {
+        const chunk = ws.slice(i, i + SIZE);
+        units.push({
+          title: book.book + ' ' + (i / SIZE + 1) + '（' + (i + 1) + '-' + (i + chunk.length) + '）',
+          subtopics: [book.book],
+          words: chunk.map(it => ({ word: it[0], phonetic: it[1] || '', meaning: it[2] || '', examples: [] })),
+          sentences: []
+        });
+      }
+    });
+    return { chapter: cat.name, title: cat.books.map(b => b.book).join(' / '), units: units };
+  });
+  textbooks.push({
+    id: 'graded-wordbooks',
+    title: '分级词库',
+    subtitle: 'Exam Wordbooks 中考 → GRE',
+    icon: '📚',
+    hasVolumes: false,
+    units: chapters
   });
 })();
 
