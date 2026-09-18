@@ -1140,6 +1140,7 @@ button {
   <div class="practice-area" id="practice-area"></div>
 </div>
 
+<script src="ocr-words.js"></script>
 <script>
 // ======================== BOOK DATA ========================
 const textbooks = [
@@ -4805,6 +4806,29 @@ function getUnitKey(ci, ui) {
 }
 let dictationAutoAdvanceTimer = null;
 let dictationRepeatStop = null;
+
+/* ---------- OCR 词库合并：教材附录词汇表，均分到 45 个单元 ---------- */
+(function mergeOcrWords() {
+  const data = window.OCR_WORDS;
+  const tb = textbooks.find(t => t.id === 'american-daily');
+  if (!data || !tb) return;
+  Object.keys(data).forEach(key => {
+    const parts = key.split(',');
+    const ci = Number(parts[0]);
+    const ui = Number(parts[1]);
+    const chapter = tb.units && tb.units[ci];
+    const unit = chapter && chapter.units && chapter.units[ui];
+    if (!unit) return;
+    const have = new Set((unit.words || []).map(w => String(w.word || '').toLowerCase().trim()));
+    (data[key] || []).forEach(it => {
+      if (!it || !it.w) return;
+      const k = String(it.w).toLowerCase().trim();
+      if (have.has(k)) return;
+      have.add(k);
+      unit.words.push({ word: it.w, phonetic: it.p || '', meaning: it.m || '', examples: [] });
+    });
+  });
+})();
 
 // ======================== INIT ========================
 async function init() {
