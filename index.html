@@ -1001,6 +1001,10 @@ button {
 .mg-field textarea { min-height: 58px; resize: vertical; }
 .mg-row-flex { display: flex; gap: 8px; align-items: center; }
 .mg-status { font-size: 12px; color: var(--accent-hover); min-height: 17px; margin-bottom: 6px; line-height: 1.5; }
+.pdf-report { display: flex; align-items: flex-start; gap: 6px; background: rgba(99,102,241,0.08); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; margin-bottom: 8px; }
+.pdf-report.busy { color: var(--text-faint); }
+.spinner { flex: none; width: 12px; height: 12px; margin-top: 3px; border: 2px solid var(--border); border-top-color: var(--accent-hover); border-radius: 50%; animation: pdfspin 0.8s linear infinite; }
+@keyframes pdfspin { to { transform: rotate(360deg); } }
 .ex-edit { border: 1px dashed var(--border-light); border-radius: 8px; padding: 8px; margin-bottom: 8px; }
 .ex-edit .ex-head { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--text-dim); margin-bottom: 6px; }
 .modal-ops { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
@@ -7003,6 +7007,66 @@ function patchKeyFor(kind, item, doc) {
   return rec ? rec.orig : null;
 }
 
+/* ---------- 当前单元：联网补齐缺失音标 ---------- */
+let phFillState = { running: false, stop: false, done: 0, total: 0, hit: 0 };
+
+function updatePhFillProgress() {
+  const pg = document.getElementById('mg-ph-progress');
+  if (pg) pg.textContent = phFillState.running ? `补齐中 ${phFillState.done}/${phFillState.total}（已补齐 ${phFillState.hit}）` : '';
+  const btn = document.getElementById('mg-ph-btn');
+  if (btn) btn.textContent = phFillState.running ? '停止补齐' : '联网补齐音标';
+}
+
+async function fillUnitPhonetics() {
+  if (phFillState.running) { phFillState.stop = true; updatePhFillProgress(); return; }
+  const scope = manageScope();
+  const unit = getUnitByScope(scope.tbId, scope.vol, scope.ci, scope.ui);
+  if (!unit) return;
+  const targets = unit.words.filter(w => w.word && !String(w.phonetic || '').trim());
+  if (!targets.length) { toast('本单元没有缺失音标的词条'); return; }
+
+  phFillState = { running: true, stop: false, done: 0, total: targets.length, hit: 0 };
+  updatePhFillProgress();
+
+  let netDead = false;
+  const found = new Map();
+  await fillMissingPhonetics(targets, 0, {
+    getEn: function (w) { return w.word; },
+    setPh: function (w, p) { found.set(w.word, p); },
+    onProgress: function (done, total, hit) {
+      phFillState.done = done; phFillState.hit = hit; phFillState.total = total;
+      updatePhFillProgress();
+    },
+    shouldStop: function () { return phFillState.stop; },
+    onDead: function () { netDead = true; }
+  });
+
+  if (found.size) {
+    await saveUnitPatch(scope, doc => {
+      found.forEach(function (ph, word) {
+        const src = unit.words.find(w => w.word === word) || {};
+        const rec = doc.words.find(p => (p.orig || p.word) === word);
+        if (rec) {
+          rec.phonetic = ph;
+          if (!rec.meaning) rec.meaning = src.meaning || '';
+        } else {
+          doc.words.push({
+            orig: word, word: word, phonetic: ph, meaning: src.meaning || '',
+            examples: src.examples || [], type: src.type || (/\s/.test(word) ? 'phrase' : 'word')
+          });
+        }
+      });
+    });
+  }
+  const stopped = phFillState.stop;
+  const n = found.size;
+  phFillState = { running: false, stop: false, done: 0, total: 0, hit: 0 };
+  if (stopped) toast(`已停止，本轮补齐 ${n} 个音标`);
+  else if (netDead) toast(`网络查询中断，本轮补上 ${n} 个音标。请检查网络/代理后重试`, 6000);
+  else toast(`补齐完成，补上 ${n} 个音标`);
+  refreshAfterContentChange();
+}
+
 /* ---------- 管理面板 ---------- */
 function openContentManager() {
   const tb = getCurrentTextbook();
@@ -7099,10 +7163,12 @@ function renderContentManager() {
           <h3>内容管理 · 纠错 / 新增</h3>
           <div class="mg-ops">
             <button class="mg-btn" onclick="openBulkImport()">批量导入</button>
+            <button class="mg-btn" id="mg-ph-btn" onclick="fillUnitPhonetics()">${phFillState.running ? '停止补齐' : '联网补齐音标'}</button>
             <button class="mg-btn" onclick="exportOverrides()">导出修订</button>
             <button class="mg-btn" onclick="importOverrides()">导入修订</button>
             <button class="mg-btn" onclick="closeContentManager()">返回练习</button>
           </div>
+          <span class="manage-count" id="mg-ph-progress">${phFillState.running ? `补齐中 ${phFillState.done}/${phFillState.total}（已补齐 ${phFillState.hit}）` : ''}</span>
         </div>
         <div class="manage-bar">
           <button class="mg-btn primary" onclick="openItemEditor('word', null, null, 'word')">＋ 新增单词</button>
@@ -7519,29 +7585,66 @@ function parseWiktionaryIPA(src) {
   return first ? wrapSlash(first.replace(/^\[|\]$/g, '')) : '';
 }
 
+// 音标查询结果缓存：查过的词不再重复请求，下次导入其它教材可直接命中
+const PH_CACHE_KEY = 'phoneticCacheV1';
+let phCacheData = null;
+function phCache() {
+  if (phCacheData) return phCacheData;
+  try { phCacheData = JSON.parse(localStorage.getItem(PH_CACHE_KEY) || '{}') || {}; } catch (e) { phCacheData = {}; }
+  return phCacheData;
+}
+function phCacheSave() {
+  try {
+    const c = phCache();
+    const keys = Object.keys(c);
+    if (keys.length > 8000) { // 太大就丢掉最旧的一半，避免撑爆 localStorage
+      keys.sort((a, b) => (c[a].t || 0) - (c[b].t || 0));
+      keys.slice(0, Math.floor(keys.length / 2)).forEach(k => delete c[k]);
+    }
+    localStorage.setItem(PH_CACHE_KEY, JSON.stringify(c));
+  } catch (e) { /* ignore */ }
+}
+
 async function fetchPhoneticUS(word) {
   const key = String(word || '').toLowerCase().trim();
+  if (!key) return '';
+  const cache = phCache();
+  const hit = cache[key];
+  // 查到过的直接复用；查不到的 3 天内不再反复打扰网络
+  if (hit && (hit.v || Date.now() - (hit.t || 0) < 3 * 24 * 3600 * 1000)) return hit.v || '';
+
+  let res = '';
   try {
     const local = buildPhoneticDict()[key];
-    if (local) return local;
+    if (local) res = local;
   } catch (e) { /* ignore */ }
-  try {
-    const data = await jfetch('https://api.dictionaryapi.dev/api/v2/entries/en/' + encodeURIComponent(word));
-    if (Array.isArray(data) && data[0] && Array.isArray(data[0].phonetics)) {
-      const phs = data[0].phonetics;
-      const us = phs.find(p => p.text && /-us\d?\.mp3|us\.mp3/i.test(p.audio || ''))
-        || phs.find(p => p.text && p.text.trim());
-      if (us && us.text) return wrapSlash(us.text);
-    }
-  } catch (e) { /* ignore */ }
-  try {
-    const r = await fetch('https://en.wiktionary.org/w/index.php?title=' + encodeURIComponent(word) + '&action=raw&origin=*');
-    if (r.ok) {
-      const ipa = parseWiktionaryIPA(await r.text());
-      if (ipa) return ipa;
-    }
-  } catch (e) { /* ignore */ }
-  return '';
+  if (!res) {
+    try {
+      const data = await jfetch('https://api.dictionaryapi.dev/api/v2/entries/en/' + encodeURIComponent(word), 6000);
+      if (Array.isArray(data) && data[0] && Array.isArray(data[0].phonetics)) {
+        const phs = data[0].phonetics;
+        const us = phs.find(p => p.text && /-us\d?\.mp3|us\.mp3/i.test(p.audio || ''))
+          || phs.find(p => p.text && p.text.trim());
+        if (us && us.text) res = wrapSlash(us.text);
+      }
+    } catch (e) { /* ignore */ }
+  }
+  if (!res) {
+    try {
+      const ctl = new AbortController();
+      const timer = setTimeout(() => ctl.abort(), 6000);
+      try {
+        const r = await fetch('https://en.wiktionary.org/w/index.php?title=' + encodeURIComponent(word) + '&action=raw&origin=*', { signal: ctl.signal });
+        if (r.ok) {
+          const ipa = parseWiktionaryIPA(await r.text());
+          if (ipa) res = ipa;
+        }
+      } finally { clearTimeout(timer); }
+    } catch (e) { /* ignore */ }
+  }
+  cache[key] = { v: res, t: Date.now() };
+  phCacheSave();
+  return res;
 }
 
 async function fetchZh(text) {
@@ -7709,6 +7812,227 @@ async function importOverrides() {
   input.click();
 }
 
+/* ---------- PDF 导入：读取文本层 → 单词 / 音标 / 中文 ---------- */
+// 只在浏览器本地读取 PDF 内嵌的文本层，不上传文件、不做 OCR。
+// 注意：教材里的音标多用专用字体（金山音标体、Times Phonetic 等），很多没有正确的
+// Unicode 映射，提取出来会落在私有区（U+E000-U+F8FF）变乱码。这类音标一律留空，
+// 交给「自动补齐音标」联网查询，结果比乱码可靠得多。
+const PDFJS_LIB_SRC = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js';
+const PDFJS_WORKER_SRC = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+const PDF_MAX_PAGES = 300;
+
+// IPA 及相关音标字符：IPA 扩展区 0250-02AF、修饰字母 02B0-02FF、æ ð ŋ θ
+const IPA_CLASS = '\\u0250-\\u02AF\\u02B0-\\u02FF\\u00E6\\u00F0\\u014B\\u03B8\\u02E5-\\u02EF';
+const IPA_TEST = new RegExp('[' + IPA_CLASS + ']');
+// 私有区 / 替换符 → 字体映射缺失导致的乱码
+const GARBLE_TEST = /[\uE000-\uF8FF\uFFFD]/;
+const CJK_CLASS = '\\u3400-\\u4dbf\\u4e00-\\u9fff';
+
+let pdfjsLoadPromise = null;
+
+function loadPdfJs() {
+  if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+  if (pdfjsLoadPromise) return pdfjsLoadPromise;
+  pdfjsLoadPromise = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = PDFJS_LIB_SRC;
+    s.onload = function () {
+      if (!window.pdfjsLib) { reject(new Error('pdf.js 加载异常')); return; }
+      try { window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_SRC; } catch (e) { /* ignore */ }
+      resolve(window.pdfjsLib);
+    };
+    s.onerror = function () { reject(new Error('加载 PDF 解析库失败（首次使用需要联网）')); };
+    document.head.appendChild(s);
+  }).catch(function (e) { pdfjsLoadPromise = null; throw e; });
+  return pdfjsLoadPromise;
+}
+
+// 带坐标的文本片段 → 视觉上的「行」：按 y 归并、按 x 排序、列间距补空格
+function pdfItemsToLines(items) {
+  const arr = [];
+  (items || []).forEach(function (it) {
+    if (!it || typeof it.str !== 'string' || it.str.trim() === '') return;
+    const t = it.transform || [1, 0, 0, 1, 0, 0];
+    const h = Math.abs(t[3] || it.height || 10) || 10;
+    arr.push({ str: it.str.replace(/\s+/g, ' '), x: t[4] || 0, y: t[5] || 0, h: h, w: it.width || 0 });
+  });
+  if (!arr.length) return [];
+  // PDF 的 y 轴向上，页面顶部 y 更大 → 按 y 降序才是从上往下
+  arr.sort(function (a, b) {
+    if (Math.abs(a.y - b.y) > 0.5) return b.y - a.y;
+    return a.x - b.x;
+  });
+  const groups = [];
+  let cur = null;
+  arr.forEach(function (it) {
+    if (cur && Math.abs(it.y - cur.y) <= Math.max(1.5, Math.min(cur.h, it.h) * 0.5)) {
+      cur.parts.push(it);
+      if (it.h > cur.h) cur.h = it.h;
+    } else {
+      cur = { y: it.y, h: it.h, parts: [it] };
+      groups.push(cur);
+    }
+  });
+  return groups.map(function (g) {
+    g.parts.sort(function (a, b) { return a.x - b.x; });
+    let out = '', prev = null;
+    g.parts.forEach(function (p) {
+      if (prev) {
+        const unit = Math.max(0.2, prev.h * 0.22);   // 大约一个空格的宽度
+        const gap = p.x - (prev.x + (prev.w || 0));
+        if (gap > unit * 5) out += '   ';   // 明显分栏 → 留大间隙
+        else if (gap > unit) out += ' ';
+      }
+      out += p.str;
+      prev = p;
+    });
+    return out.trim();
+  });
+}
+
+function countIpaChars(s) {
+  const m = String(s || '').match(new RegExp('[' + IPA_CLASS + '\\uE000-\\uF8FF]', 'g'));
+  return m ? m.length : 0;
+}
+
+// 在整行里定位音标：优先 /.../、其次 [...]，最后按 IPA 字符找裸音标
+function pickPhonetic(s) {
+  const segs = [];
+  let m;
+  const cm = s.match(new RegExp('[' + CJK_CLASS + ']'));
+  const cjkAt = cm ? cm.index : s.length;
+  // 音标只可能出现在中文之前；纯 ASCII 型音标（如 /get/）只在「本行有中文」时才采信，
+  // 否则 and/or 这类英文里的斜杠会被误当成音标
+  const okPh = function (inner, start) {
+    if (start > cjkAt) return false;
+    if (IPA_TEST.test(inner) || /[\u02C8\u02CC\u02D0\u02D1]/.test(inner) || GARBLE_TEST.test(inner)) return true;
+    return cjkAt < s.length && /^[A-Za-z'’,.:;^\- ]{1,60}$/.test(inner);
+  };
+  const reSlash = /\/([^\/\n]{1,80})\//g;
+  while ((m = reSlash.exec(s))) {
+    if (okPh(m[1], m.index)) segs.push({ text: m[1], start: m.index, end: m.index + m[0].length });
+  }
+  if (!segs.length) {
+    const reBr = /\[([^\[\]\n]{1,80})\]/g;
+    while ((m = reBr.exec(s))) {
+      if (okPh(m[1], m.index)) segs.push({ text: m[1], start: m.index, end: m.index + m[0].length });
+    }
+  }
+  if (!segs.length) {
+    const reBare = new RegExp('[^\\s' + CJK_CLASS + ']*[' + IPA_CLASS + '\\uE000-\\uF8FF][^' + CJK_CLASS + ']*', 'g');
+    while ((m = reBare.exec(s))) {
+      const t = m[0].trim();
+      if (t) segs.push({ text: t, start: m.index, end: m.index + m[0].length });
+    }
+  }
+  if (!segs.length) return null;
+  segs.sort(function (a, b) { return countIpaChars(b.text) - countIpaChars(a.text); });
+  return segs[0];
+}
+
+// 一行教材文本 → { en, ph, cn }；不像词条则返回 null
+function parsePdfEntryLine(raw) {
+  let s = String(raw == null ? '' : raw)
+    .replace(/[\u0000-\u001F\u007F]/g, ' ')
+    .replace(/\s+/g, ' ').trim();
+  if (!s || s.length > 400) return null;
+  if (/^\d{1,4}$/.test(s)) return null;                                  // 页码
+  if (/^(page\s*)?\d+\s*(\/\s*\d+)?$/i.test(s)) return null;             // 页码 / 1/23
+  if (/^(page|chapter|unit|lesson|第)\s*[\divx]+\s*(页|of)?.*$/i.test(s) && s.length < 30) return null;
+
+  let ph = '', garbled = false;
+  const slot = pickPhonetic(s);
+  if (slot) {
+    if (GARBLE_TEST.test(slot.text)) garbled = true;
+    else ph = slot.text.trim();
+    s = (s.slice(0, slot.start) + ' ' + s.slice(slot.end)).replace(/\s+/g, ' ').trim();
+  }
+
+  // 中文：从第一个汉字起到行尾
+  let en = s, cn = '';
+  const cm = s.match(new RegExp('[' + CJK_CLASS + ']'));
+  if (cm) {
+    cn = s.slice(cm.index).trim();
+    en = s.slice(0, cm.index).trim();
+  }
+  // 去掉词性标记：n. v. adj. 等
+  en = en.replace(/[\s,;·、]+(n|v|vt|vi|adj|adv|prep|conj|pron|num|art|int|abbr|aux|pl)\.\s*$/i, '').trim();
+  cn = cn.replace(/^[（(\[]?\s*(n|v|vt|vi|adj|adv|prep|conj|pron|num|art|int|abbr|aux|pl)\.?\s*[)）\]]?[\s、.,;]*\s*/i, '').trim();
+  if (garbled) {
+    // 乱码音标可能残留碎片挂在中文前面，去掉开头的孤立符号
+    cn = cn.replace(/^[\s\-\uE000-\uF8FF\uFFFD.·,;:]+/, '').trim();
+  }
+
+  if (!en || !/[A-Za-z]/.test(en)) return null;
+  if (en.split(/\s+/).length > 40) return null;                          // 太长 → 课文正文
+  if (!cn && !ph && !/^[A-Za-z][A-Za-z\-'’\s.]{0,60}$/.test(en)) return null;
+  return { en: en, ph: ph, cn: cn, garbled: garbled && !ph };
+}
+
+async function importPdfFile(file) {
+  const st = importState;
+  if (!st) return;
+  st.pdfBusy = true;
+  st.pdfReport = '正在加载 PDF 解析库…';
+  renderBulkImport();
+  try {
+    const lib = await loadPdfJs();
+    const buf = await file.arrayBuffer();
+    const doc = await lib.getDocument({ data: new Uint8Array(buf) }).promise;
+    const total = doc.numPages || 0;
+    const limited = Math.min(total, PDF_MAX_PAGES);
+    let chars = 0;
+    const lines = [];
+    for (let p = 1; p <= limited; p++) {
+      const page = await doc.getPage(p);
+      const tc = await page.getTextContent();
+      (tc.items || []).forEach(function (it) { chars += (it && it.str ? it.str.length : 0); });
+      pdfItemsToLines(tc.items).forEach(function (l) { lines.push(l); });
+      if (p % 5 === 0 || p === limited) {
+        st.pdfReport = '正在解析第 ' + p + '/' + limited + ' 页…';
+        renderBulkImport();
+      }
+      if (p % 20 === 0) await new Promise(r => setTimeout(r, 0));   // 让出主线程，界面不假死
+    }
+    const entries = [];
+    let garbled = 0;
+    lines.forEach(function (l) {
+      const e = parsePdfEntryLine(l);
+      if (e) { entries.push(e); if (e.garbled) garbled++; }
+    });
+    st.text = ['word\tphonetic\tmeaning'].concat(
+      entries.map(function (e) { return [e.en, e.ph, e.cn].join('\t'); })
+    ).join('\n');
+    st.delim = '\t';
+    st.header = true;
+    st.headerTouched = true;
+    parseImportText();
+
+    const thin = total > 0 && chars < total * 20;
+    if (!entries.length) {
+      st.pdfReport = thin
+        ? '这个 PDF 几乎没有文本层（多半是扫描件 / 图片版），浏览器里无法 OCR。请先用 PDF 工具的 OCR 功能另存为文本版，或改用 CSV 导入。'
+        : '没有识别出「英文 + 音标 / 中文」的词条排版。可在下方文本框手动整理，或调整列映射后再导入。';
+    } else {
+      st.pdfReport = '已从 ' + limited + ' 页提取 ' + entries.length + ' 条';
+      if (garbled) st.pdfReport += '，其中 ' + garbled + ' 条音标是乱码（教材专用字体所致）已留空';
+      if (total > limited) st.pdfReport += '；文件共 ' + total + ' 页，本次只解析前 ' + limited + ' 页';
+      if (thin) st.pdfReport += '。注意文本量偏少，可能是扫描件，请核对下方预览';
+      st.pdfReport += '。确认无误后再点「确认导入」';
+    }
+    const needPh = st.rows.filter(function (r) { return !r.ph; }).length;
+    st.autoFillPh = needPh > 0;
+    st.pdfNeedPh = needPh;
+  } catch (e) {
+    st.pdfReport = 'PDF 解析失败：' + (e && e.message ? e.message : String(e));
+    st.pdfNeedPh = 0;
+    st.autoFillPh = false;
+  } finally {
+    st.pdfBusy = false;
+    renderBulkImport();
+  }
+}
+
 /* ---------- 批量导入：CSV / TXT 单词表 ---------- */
 // 借鉴 Anki 的导入设计：分隔符自动识别 → 表头识别 → 列映射 → 先预览再确认
 let importState = null;
@@ -7845,7 +8169,8 @@ function openBulkImport() {
     ci: panel ? manageState.ci : (currentChapter === null ? 0 : currentChapter),
     ui: panel ? manageState.ui : (currentUnit === null ? 0 : currentUnit),
     delim: 'auto', header: true, headerTouched: false, kind: 'auto',
-    text: '', cells: null, rows: [], map: { en: 0, ph: -1, cn: 1 }
+    text: '', cells: null, rows: [], map: { en: 0, ph: -1, cn: 1 },
+    pdfBusy: false, pdfReport: '', pdfNeedPh: 0, autoFillPh: false
   };
   const overlay = document.createElement('div');
   overlay.className = 'modal-overlay';
@@ -7884,15 +8209,27 @@ function renderBulkImport() {
   const parsed = st.cells !== null;
   const preview = parsed ? importRowsWithState() : [];
   const okCount = preview.filter(r => !r.dup).length;
+  const needPh = parsed ? preview.filter(r => !r.dup && !r.sentence && !r.ph).length : (st.pdfNeedPh || 0);
 
   card.innerHTML = `
     <h3>批量导入单词 / 短语 / 句子</h3>
-    <div class="modal-sub">支持 CSV / TXT：每行一条，列之间用逗号、制表符、分号或竖线分隔；也可以直接从 Excel 复制粘贴</div>
+    <div class="modal-sub">支持 CSV / TXT / PDF：CSV 每行一条，列之间用逗号、制表符、分号或竖线分隔，也可从 Excel 复制粘贴；PDF 在本机读取文本层，自动拆成「英文 / 音标 / 中文」，不会上传</div>
 
     <div class="mg-field">
-      <label>选择文件（.csv / .txt / .tsv）</label>
-      <input type="file" id="imp-file" accept=".csv,.txt,.tsv,text/csv,text/plain" onchange="onImportFile(this)">
+      <label>选择文件（.csv / .txt / .tsv / .pdf）</label>
+      <input type="file" id="imp-file" accept=".csv,.txt,.tsv,.pdf,text/csv,text/plain,application/pdf" onchange="onImportFile(this)" ${st.pdfBusy ? 'disabled' : ''}>
     </div>
+
+    ${st.pdfReport ? `<div class="mg-status pdf-report${st.pdfBusy ? ' busy' : ''}">${st.pdfBusy ? '<span class="spinner"></span>' : ''}${escHtml(st.pdfReport)}</div>` : ''}
+
+    ${needPh ? `
+      <div class="mg-field">
+        <label style="display:flex;align-items:center;gap:8px;color:var(--text)">
+          <input type="checkbox" style="width:auto" ${st.autoFillPh ? 'checked' : ''} onchange="importState.autoFillPh=this.checked; renderBulkImport();">
+          音标缺失的 ${needPh} 条，导入时联网自动补齐（全部查一遍，可中途停止）
+        </label>
+      </div>` : ''}
+
     <div class="mg-field">
       <label>或直接粘贴内容</label>
       <textarea id="imp-text" rows="7" placeholder="alarm clock,/əˈlɑːrm klɑːk/,闹钟&#10;make up,/meɪk ʌp/,化妆" oninput="importState.text=this.value">${escHtml(st.text)}</textarea>
@@ -7955,17 +8292,24 @@ function renderBulkImport() {
       </div>
     ` : ''}
 
-    <div class="mg-status" id="imp-status">${parsed ? (st.rows.length ? `解析到 ${st.rows.length} 条，其中 ${okCount} 条可导入` : '没有解析出内容，请检查分隔符或列映射') : '粘贴内容或选择文件后点击「解析预览」'}</div>
+    <div class="mg-status" id="imp-status">${st.importing ? `正在联网补齐音标 ${st.fillDone || 0}/${st.fillTotal || needPh}（已补齐 ${st.fillHit || 0} 个）…` : (parsed ? (st.rows.length ? `解析到 ${st.rows.length} 条，其中 ${okCount} 条可导入${needPh ? `，${needPh} 条缺音标` : ''}` : '没有解析出内容，请检查分隔符或列映射') : '粘贴内容或选择文件后点击「解析预览」')}</div>
     <div class="modal-ops">
-      <button class="btn btn-primary" onclick="parseImportText(); renderBulkImport();">解析预览</button>
-      <button class="btn btn-primary" onclick="confirmBulkImport()" ${!okCount ? 'disabled' : ''}>确认导入 ${okCount ? '(' + okCount + ')' : ''}</button>
-      <button class="btn" onclick="closeBulkImport()">取消</button>
+      <button class="btn btn-primary" onclick="parseImportText(); renderBulkImport();" ${st.pdfBusy || st.importing ? 'disabled' : ''}>解析预览</button>
+      <button class="btn btn-primary" onclick="confirmBulkImport()" ${(!okCount || st.pdfBusy || st.importing) ? 'disabled' : ''}>${st.importing ? '正在补齐音标…' : '确认导入 ' + (okCount ? '(' + okCount + ')' : '')}</button>
+      ${st.importing
+        ? `<button class="btn" onclick="importState.fillStop=true">停止补齐</button>`
+        : `<button class="btn" onclick="closeBulkImport()">取消</button>`}
     </div>`;
 }
 
 function onImportFile(input) {
   const f = input.files && input.files[0];
   if (!f || !importState) return;
+  if (/\.pdf$/i.test(f.name || '') || f.type === 'application/pdf') {
+    importPdfFile(f).catch(function () { /* 失败原因已在面板里提示 */ });
+    input.value = '';
+    return;
+  }
   const reader = new FileReader();
   reader.onload = () => {
     importState.text = String(reader.result || '');
@@ -7974,6 +8318,7 @@ function onImportFile(input) {
     renderBulkImport();
   };
   reader.readAsText(f, 'utf-8');
+  input.value = '';
 }
 
 function onImportUnitChange(ci) {
@@ -7982,11 +8327,73 @@ function onImportUnitChange(ci) {
   renderBulkImport();
 }
 
+// 逐批联网补齐音标。limit=0 表示不限条数；onProgress(已查, 总数, 已补齐)；shouldStop() 返回 true 时中断
+async function fillMissingPhonetics(rows, limit, opts) {
+  opts = opts || {};
+  const getEn = opts.getEn || function (r) { return r.en; };
+  const setPh = opts.setPh || function (r, p) { r.ph = p; };
+  const missing = rows.filter(function (r) { return !r.sentence && !r.ph && String(getEn(r) || '').trim(); });
+  const list = limit ? missing.slice(0, limit) : missing;
+  if (!list.length) return 0;
+  let done = 0, hit = 0;
+  const win = [];        // 最近若干次查询的成败，用来判断网络是否根本不通
+  const WIN = 12, WIN_FAIL = 10;
+  const CONC = 6;
+  for (let i = 0; i < list.length; i += CONC) {
+    if (opts.shouldStop && opts.shouldStop()) break;
+    const batch = list.slice(i, i + CONC);
+    const res = await Promise.all(batch.map(function (r) {
+      return fetchPhoneticUS(getEn(r)).catch(function () { return ''; });
+    }));
+    res.forEach(function (ph, k) {
+      if (ph) setPh(batch[k], ph);
+      win.push(ph ? 1 : 0);
+      if (win.length > WIN) win.shift();
+    });
+    hit += res.filter(Boolean).length;
+    done += batch.length;
+    // 最近 12 次查询里挂了 10 次，基本可以断定是网络不通（代理没开 / 被墙），
+    // 没必要让剩下的上千条继续干等到超时
+    if (win.length >= WIN && win.filter(x => !x).length >= WIN_FAIL) {
+      if (opts.onDead) { try { opts.onDead(); } catch (e) { /* ignore */ } }
+      break;
+    }
+    if (opts.onProgress) {
+      try { opts.onProgress(done, list.length, hit); } catch (e) { /* ignore */ }
+    }
+  }
+  return hit;
+}
+
 async function confirmBulkImport() {
   const st = importState;
   if (!st) return;
   const rows = importRowsWithState().filter(r => !r.dup && r.en);
   if (!rows.length) return;
+
+  let filled = 0;
+  const need = rows.filter(function (r) { return !r.sentence && !r.ph; }).length;
+  if (st.autoFillPh && need) {
+    st.importing = true;
+    st.fillStop = false;
+    st.fillDone = 0;
+    st.fillTotal = need;
+    renderBulkImport();
+    filled = await fillMissingPhonetics(rows, 0, {
+      onProgress: function (done, total, hit) {
+        st.fillDone = done;
+        st.fillHit = hit;
+        const el = document.getElementById('imp-status');
+        if (el) el.textContent = `正在联网补齐音标 ${done}/${total}（已补齐 ${hit} 个）…`;
+      },
+      shouldStop: function () { return !!st.fillStop; },
+      onDead: function () { st.netDead = true; }
+    });
+    st.importing = false;
+    if (st.fillStop) toast(`已停止补齐，已补到 ${filled} 个音标，未补齐的稍后可在内容管理里继续`);
+    else if (st.netDead) toast(`网络查询中断，只补到 ${filled} 个音标。请检查网络/代理后，可在内容管理点「联网补齐音标」继续`, 6000);
+  }
+
   const scope = importScope();
   await saveUnitPatch(scope, doc => {
     rows.forEach(r => {
@@ -8002,7 +8409,7 @@ async function confirmBulkImport() {
   });
   const skipped = st.rows.length - rows.length;
   closeBulkImport();
-  toast(`已导入 ${rows.length} 条${skipped ? `，跳过 ${skipped} 条重复` : ''}`);
+  toast(`已导入 ${rows.length} 条${filled ? `（自动补齐音标 ${filled} 个）` : ''}${skipped ? `，跳过 ${skipped} 条重复` : ''}`);
   refreshAfterContentChange();
 }
 
