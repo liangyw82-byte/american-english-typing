@@ -1135,6 +1135,7 @@ button {
     <div class="topbar-right">
       <button class="btn-manage" onclick="openToleranceSettings()" title="打字容错：忽略大小写 / 标点符号 / 重音">⚙️<span class="mg-label"> 容错</span></button>
       <button class="btn-manage" onclick="openContentManager()" title="内容管理：纠正音标/释义、新增单词短语句子">✏️<span class="mg-label"> 内容管理</span></button>
+      <button class="btn-manage" onclick="openSpokenNotes()" title="口语笔记：粘贴英文对话/字幕，用 AI 笔记生成练习单元">📝<span class="mg-label"> 口语笔记</span></button>
     </div>
   </div>
   <div class="practice-area" id="practice-area"></div>
@@ -8480,5 +8481,6 @@ async function confirmBulkImport() {
 // Start
 init();
 </script>
+<script src="spoken-notes.js"></script>
 </body>
 </html>
