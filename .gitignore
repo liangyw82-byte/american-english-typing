@@ -1,0 +1,12 @@
+# 剧集资源体积大，不入库（用 tools/extract_shameless.py 重新生成即可）
+*.ass
+*.srt
+*.ssa
+*.sub
+*.mkv
+*.mp4
+*.iso
+
+# 临时
+__pycache__/
+.DS_Store
