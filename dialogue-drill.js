@@ -77,6 +77,43 @@
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   }
 
+  /* 停掉主程序正在播放的语音：听写的循环跟读、自动进入下一个的定时器都要清掉，
+     否则切到情景对话后声音还在响，回来时进度也被定时器推走了 */
+  function stopSpeech() {
+    try { if (typeof synth !== 'undefined' && synth) synth.cancel(); } catch (e) { /* 忽略 */ }
+    try {
+      if (typeof dictationRepeatStop === 'function' && dictationRepeatStop) {
+        dictationRepeatStop();
+        dictationRepeatStop = null;
+      }
+    } catch (e) { /* 忽略 */ }
+    try {
+      if (typeof dictationAutoAdvanceTimer !== 'undefined' && dictationAutoAdvanceTimer) {
+        clearInterval(dictationAutoAdvanceTimer);
+        dictationAutoAdvanceTimer = null;
+      }
+    } catch (e) { /* 忽略 */ }
+  }
+
+  /* 把侧栏高亮和面包屑同步回指定单元（与 selectUnit 里的处理保持一致） */
+  function syncChrome(ci, ui) {
+    try {
+      document.querySelectorAll('.unit-item').forEach(el => el.classList.remove('active'));
+      const chapterDiv = document.querySelectorAll('.chapter-item')[ci];
+      if (chapterDiv) {
+        chapterDiv.classList.add('expanded');
+        const unitItems = chapterDiv.querySelectorAll('.unit-item');
+        if (unitItems[ui]) unitItems[ui].classList.add('active');
+      }
+      const bc = document.getElementById('breadcrumb');
+      const chapter = typeof getCurrentUnits === 'function' ? getCurrentUnits()[ci] : null;
+      const unit = chapter && chapter.units ? chapter.units[ui] : null;
+      if (bc && chapter && unit) {
+        bc.innerHTML = esc(chapter.chapter) + ' > <span>' + esc(unit.title) + '</span>';
+      }
+    } catch (e) { /* 侧栏结构不一致就算了，不影响练习 */ }
+  }
+
   /* ---------------- 存档：掌握度 / 错题 / 每日记录 ---------------- */
   function loadStore() {
     try {
@@ -482,13 +519,50 @@
   }
 
   /* ---------------- 交互（挂到 window 供 onclick 调用） ---------------- */
+  /* 离开练习区去做别的事（情景对话、口语笔记等）时调用：
+     停掉正在放的语音，并返回当前进度快照，回来时原样接上 */
+  window.ddLeavePractice = function () {
+    stopSpeech();
+    if (typeof currentChapter === 'undefined') return null;
+    try {
+      return {
+        ci: currentChapter, ui: currentUnit,
+        mode: (typeof currentMode !== 'undefined' ? currentMode : 'word'),
+        idx: (typeof currentIndex !== 'undefined' ? currentIndex : 0),
+        wrong: (typeof isWrongMode !== 'undefined' ? isWrongMode : false)
+      };
+    } catch (e) { return null; }
+  };
+
+  /* 按快照回到原来那一课、原来那一项；恢复成功返回 true */
+  window.ddReturnToPractice = function (snap) {
+    stopSpeech();
+    if (!snap || snap.ci === null || snap.ci === undefined || typeof startPractice !== 'function') return false;
+    try {
+      currentChapter = snap.ci;
+      currentUnit = snap.ui;
+      currentMode = snap.mode || 'word';
+      if (typeof isWrongMode !== 'undefined') isWrongMode = !!snap.wrong;
+      syncChrome(snap.ci, snap.ui);
+      startPractice(snap.idx || 0);          // startPractice 支持起始下标，不会从头开始
+      if (typeof saveProgress === 'function') saveProgress();
+      return true;
+    } catch (e) { return false; }
+  };
+
+  let ddReturn = null;   // 进入情景对话前的进度快照
+
   window.openDialogueDrill = function () {
+    if (typeof window.ddLeavePractice === 'function') ddReturn = window.ddLeavePractice();
     injectStyle();
     index();
     if (!state.item) nextItem(true); else render();
   };
 
   window.ddBack = function () {
+    const r = ddReturn;
+    ddReturn = null;
+    if (r && window.ddReturnToPractice(r)) return;
     if (typeof currentChapter !== 'undefined' && currentChapter !== null && typeof selectUnit === 'function') {
       selectUnit(currentChapter, currentUnit === null ? 0 : currentUnit);
     } else if (typeof renderSidebar === 'function') {

@@ -272,12 +272,19 @@
   }
 
   /* ---------------- 交互 ---------------- */
+  let snReturn = null;   // 进入笔记页之前的进度快照
+
   window.openSpokenNotes = function () {
+    // 停掉听写循环跟读等还在响的语音，并记住练到哪了
+    if (typeof window.ddLeavePractice === 'function') snReturn = window.ddLeavePractice();
     state = { parsed: null };
     renderNotesPage();
   };
 
   window.snBack = function () {
+    const r = snReturn;
+    snReturn = null;
+    if (r && typeof window.ddReturnToPractice === 'function' && window.ddReturnToPractice(r)) return;
     if (typeof currentChapter !== 'undefined' && currentChapter !== null && typeof selectUnit === 'function') {
       selectUnit(currentChapter, currentUnit === null ? 0 : currentUnit);
     } else if (typeof renderSidebar === 'function') {
