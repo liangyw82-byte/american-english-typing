@@ -4207,46 +4207,59 @@ function afterLogin() {
 let db = null;
 
 function initDB() {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open('typing_practice', 4);
-    request.onupgradeneeded = function(e) {
-      const database = e.target.result;
-      if (!database.objectStoreNames.contains('progress')) {
-        database.createObjectStore('progress', { keyPath: 'email' });
-      }
-      if (!database.objectStoreNames.contains('wrongItems')) {
-        const store = database.createObjectStore('wrongItems', { keyPath: 'id' });
-        store.createIndex('email', 'email', { unique: false });
-        store.createIndex('textbookId', 'textbookId', { unique: false });
-      }
-      // 内容修订（纠错 / 新增词条）按「教材-册-章-单元」为作用域存放
-      if (!database.objectStoreNames.contains('overrides')) {
-        const os = database.createObjectStore('overrides', { keyPath: 'id' });
-        os.createIndex('email', 'email', { unique: false });
-        os.createIndex('textbookId', 'textbookId', { unique: false });
-      }
-      if (e.oldVersion < 3) {
-        const tx = e.target.transaction;
-        if (tx) {
-          const progressStore = tx.objectStore('progress');
-          if (progressStore && !progressStore.indexNames.contains('textbookId')) {
-            progressStore.createIndex('textbookId', 'textbookId', { unique: false });
-          }
-          const wrongStore = tx.objectStore('wrongItems');
-          if (wrongStore && !wrongStore.indexNames.contains('textbookId')) {
-            wrongStore.createIndex('textbookId', 'textbookId', { unique: false });
+  return new Promise((resolve) => {
+    // 有些环境根本没有 IndexedDB（file://、无痕模式、被浏览器禁用）：直接降级成
+    // 「只存在这台机器上」。这里绝不能抛错 —— 一旦抛出，整个脚本的顶层声明都会失效，
+    // 页面上所有按钮就都失灵了。
+    if (typeof indexedDB === 'undefined' || !indexedDB) {
+      console.warn('IndexedDB 不可用，进度只保存在本机浏览器');
+      resolve(null);
+      return;
+    }
+    try {
+      const request = indexedDB.open('typing_practice', 4);
+      request.onupgradeneeded = function(e) {
+        const database = e.target.result;
+        if (!database.objectStoreNames.contains('progress')) {
+          database.createObjectStore('progress', { keyPath: 'email' });
+        }
+        if (!database.objectStoreNames.contains('wrongItems')) {
+          const store = database.createObjectStore('wrongItems', { keyPath: 'id' });
+          store.createIndex('email', 'email', { unique: false });
+          store.createIndex('textbookId', 'textbookId', { unique: false });
+        }
+        // 内容修订（纠错 / 新增词条）按「教材-册-章-单元」为作用域存放
+        if (!database.objectStoreNames.contains('overrides')) {
+          const os = database.createObjectStore('overrides', { keyPath: 'id' });
+          os.createIndex('email', 'email', { unique: false });
+          os.createIndex('textbookId', 'textbookId', { unique: false });
+        }
+        if (e.oldVersion < 3) {
+          const tx = e.target.transaction;
+          if (tx) {
+            const progressStore = tx.objectStore('progress');
+            if (progressStore && !progressStore.indexNames.contains('textbookId')) {
+              progressStore.createIndex('textbookId', 'textbookId', { unique: false });
+            }
+            const wrongStore = tx.objectStore('wrongItems');
+            if (wrongStore && !wrongStore.indexNames.contains('textbookId')) {
+              wrongStore.createIndex('textbookId', 'textbookId', { unique: false });
+            }
           }
         }
-      }
-    };
-    request.onsuccess = function(e) {
-      db = e.target.result;
-      resolve(db);
-    };
-    request.onerror = function(e) {
-      console.error('IndexedDB error:', e);
+      };
+      request.onsuccess = function(e) {
+        db = e.target.result;
+        resolve(db);
+      };
+      request.onerror = function(e) {
+        console.error('IndexedDB error:', e);
+        resolve(null);
+      };
+    } catch (e) {
+      console.warn('IndexedDB 打开失败，进度只保存在本机浏览器：', e);
       resolve(null);
-    };
+    }
   });
 }
 
@@ -4606,24 +4619,37 @@ let dictationRepeatStop = null;
 
 // ======================== INIT ========================
 async function init() {
-  snapshotPristine();
-  await initDB();
-  await applyOverrides();
-  renderSidebar();
-  if (currentUser) {
-    afterLogin();
-  } else {
-    showLoginScreen();
-    renderWelcome();
+  // 初始化里任何一步出错都不能让整页脚本崩掉（一崩，所有 let/const 顶层声明失效，
+  // 页面看着在，实际按钮全失灵）。这里整体兜住，坏哪步降级哪步。
+  try {
+    snapshotPristine();
+    await initDB();
+    await applyOverrides();
+    renderSidebar();
+    if (currentUser) {
+      afterLogin();
+    } else {
+      showLoginScreen();
+      renderWelcome();
+    }
+    updateGlobalStats();
+  } catch (e) {
+    console.error('初始化出错，已降级继续：', e);
+    try {
+      renderSidebar();
+      renderWelcome();
+    } catch (e2) { /* 忽略 */ }
   }
-  updateGlobalStats();
 
-  document.getElementById('login-password').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') handleLoginAction();
-  });
-  document.getElementById('login-email').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') document.getElementById('login-password').focus();
-  });
+  const bindEnter = (from, to) => {
+    const a = document.getElementById(from);
+    const b = document.getElementById(to);
+    if (!a || !b) return;
+    a.addEventListener('keydown', (e) => { if (e.key === 'Enter') b.focus(); });
+  };
+  bindEnter('login-email', 'login-password');
+  const pw = document.getElementById('login-password');
+  if (pw) pw.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleLoginAction(); });
 
   // Warm up speech synthesis on first user interaction (important for mobile)
   const warmUpOnce = () => {
@@ -8261,7 +8287,7 @@ async function confirmBulkImport() {
 }
 
 // Start
-init();
+init().catch(e => console.error('启动失败：', e));
 </script>
 <script src="shameless.js"></script>
 <script src="zoubian.js"></script>
