@@ -188,6 +188,11 @@ button {
   gap: 6px;
 }
 .unit-item:hover { background: var(--bg-hover); color: var(--text); }
+.unit-item .unit-pos {
+  margin-left: auto; font-size: 11px; white-space: nowrap;
+  color: var(--accent-hover); background: var(--accent-dim);
+  border-radius: 8px; padding: 1px 6px;
+}
 .unit-item.active { background: var(--accent-dim); color: #fff; }
 .unit-item .unit-check {
   width: 14px; height: 14px;
@@ -3960,13 +3965,50 @@ function saveBookPos() {
     const ch = units[currentChapter];
     const unit = ch && ch.units ? ch.units[currentUnit] : null;
     if (!unit) return;
+    const total = (typeof practiceItems !== 'undefined' && practiceItems.length) || 0;
+    let idx = currentIndex || 0;
+    let done = false;
+    if (total > 0 && idx >= total) { idx = total - 1; done = true; }   // 这个单元已经练完
     const all = loadBookPos();
     all[bookPosKey(currentTextbook, currentVolume)] = {
       tb: currentTextbook, vol: currentVolume, ci: currentChapter, ui: currentUnit,
-      mode: currentMode, idx: currentIndex || 0,
+      mode: currentMode, idx: idx, done: done, total: total,
       ch: ch.chapter || '', title: unit.title || '', at: Date.now()
     };
     localStorage.setItem(BOOK_POS_KEY, JSON.stringify(all));
+    updateUnitPosMarks();
+  } catch (e) { /* 忽略 */ }
+}
+
+/* 这个单元上次练到哪（同一教材 + 同一模式才算，换模式下标就不是一回事了） */
+function bookPosOf(ci, ui) {
+  const p = getBookPos();
+  if (!p || p.ci !== ci || p.ui !== ui) return null;
+  if (p.mode !== currentMode) return null;
+  return p;
+}
+
+/* 侧栏里给「上次练到的单元」挂个小标记（只改文字，不重建侧栏，展开状态不会丢） */
+function updateUnitPosMarks() {
+  try {
+    const p = getBookPos();
+    document.querySelectorAll('.chapter-item').forEach((chDiv, ci) => {
+      chDiv.querySelectorAll('.unit-item').forEach((el, ui) => {
+        const hit = !!p && p.ci === ci && p.ui === ui;
+        let mark = el.querySelector('.unit-pos');
+        if (hit) {
+          if (!mark) {
+            mark = document.createElement('span');
+            mark.className = 'unit-pos';
+            el.appendChild(mark);
+          }
+          mark.textContent = p.done ? '✓ 练完' : '↩ 第 ' + ((p.idx || 0) + 1) + ' 项';
+          mark.style.display = '';
+        } else if (mark) {
+          mark.style.display = 'none';
+        }
+      });
+    });
   } catch (e) { /* 忽略 */ }
 }
 
@@ -3976,6 +4018,7 @@ function getBookPos() {
 
 function bookPosLabel(p) {
   const modeNames = { word: '单词模式', sentence: '句子模式', dictation: '听写模式' };
+  if (p.done) return (p.ch ? p.ch + ' > ' : '') + p.title + '（已练完 · ' + (modeNames[p.mode] || '单词模式') + '）';
   const unitName = p.mode === 'word' ? '个词' : (p.mode === 'sentence' ? '句' : '项');
   return (p.ch ? p.ch + ' > ' : '') + p.title + ' · 第 ' + ((p.idx || 0) + 1) + ' ' + unitName
     + '（' + (modeNames[p.mode] || '单词模式') + '）';
@@ -4005,7 +4048,7 @@ function resumeBookPos() {
     return;
   }
   if (typeof window.ddLeavePractice === 'function') window.ddLeavePractice();   // 先停掉还在响的语音
-  resumeLearning(p.ci, p.ui, p.mode || 'word', p.idx || 0);
+  resumeLearning(p.ci, p.ui, p.mode || 'word', p.done ? 0 : (p.idx || 0));      // 已练完的单元从头再来一遍
 }
 
 function getTextbookId() {
@@ -4630,12 +4673,15 @@ function renderSidebar() {
     `;
     nav.appendChild(chapterDiv);
   });
+  updateUnitPosMarks();   // 标出这本书上次练到哪一课的哪一项
 }
 
 function toggleChapter(ci) {
   const chapters = document.querySelectorAll('.chapter-item');
   chapters[ci].classList.toggle('expanded');
 }
+
+let autoResumeKey = null;   // 上一次自动接上的单元，再点一次表示要真的从头
 
 async function selectUnit(ci, ui) {
   currentChapter = ci;
@@ -4657,8 +4703,15 @@ async function selectUnit(ci, ui) {
   const breadcrumb = document.getElementById('breadcrumb');
   breadcrumb.innerHTML = `${chapter.chapter} > <span>${unit.title}</span>`;
 
+  // 又点回上次那个单元 → 接着上次的进度，不用从头；再点一次才真的从头
+  const pos = bookPosOf(ci, ui);
+  const key = ci + ':' + ui;
+  const startAt = (pos && !pos.done && (pos.idx || 0) > 0 && autoResumeKey !== key) ? pos.idx : 0;
+  autoResumeKey = startAt > 0 ? key : null;
+
   closeSidebar();
-  startPractice();
+  startPractice(startAt);
+  if (startAt > 0) toast(`接着上次第 ${startAt + 1} 项继续（再点一次这个单元则从头开始）`);
   saveProgress();
 }
 
@@ -6411,7 +6464,11 @@ function renderWelcome(savedProgress) {
   const totalSentences = units.reduce((sum, ch) => sum + ch.units.reduce((s, u) => s + u.sentences.length, 0), 0);
 
   let resumeBtn = '';
-  if (savedProgress && savedProgress.chapter !== null && savedProgress.chapter !== undefined) {
+  // 这本书（这一册）上次练到哪 —— 按教材分开记，切到别的书也不会被覆盖
+  const bpos = getBookPos();
+  // 云端进度和本地记录是同一个单元的话，只留本地那份（它的下标更新，也知道练到第几项）
+  const sameUnit = bpos && savedProgress && savedProgress.chapter === bpos.ci && savedProgress.unit === bpos.ui;
+  if (savedProgress && !sameUnit && savedProgress.chapter !== null && savedProgress.chapter !== undefined) {
     const ch = units[savedProgress.chapter];
     const unit = ch && ch.units ? ch.units[savedProgress.unit] : null;   // 换过教材时旧进度会越界
     const modeNames = { word: '单词模式', sentence: '句子模式', dictation: '听写模式' };
@@ -6420,8 +6477,6 @@ function renderWelcome(savedProgress) {
     }
   }
 
-  // 这本书（这一册）上次练到哪 —— 按教材分开记，切到别的书也不会被覆盖
-  const bpos = getBookPos();
   if (bpos && (!savedProgress || savedProgress.chapter !== bpos.ci
       || savedProgress.unit !== bpos.ui || (savedProgress.index || 0) !== (bpos.idx || 0))) {
     const ago = bookPosAgo(bpos.at);
