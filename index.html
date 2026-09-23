@@ -954,6 +954,8 @@ button {
   font-size: 13px; cursor: pointer; white-space: nowrap;
 }
 .tool-menu button:hover { background: var(--bg-hover); color: var(--text); }
+/* display: flex 会盖掉浏览器给 [hidden] 的默认 display:none，得自己补上 */
+.tool-menu[hidden] { display: none; }
 .btn-manage {
   padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border);
   background: var(--bg-hover); color: var(--text);
