@@ -3935,6 +3935,79 @@ function getCurrentUnits() {
   return tb.units || [];
 }
 
+// ======================== STATE: 每本教材练到哪里 ========================
+// 云端的 progress 只有一份，切书会互相覆盖；这里按「教材 + 分册」各留一份，
+// 切回来时提示「上次练到哪一课的哪一项」，一键跳回。
+const BOOK_POS_KEY = 'bookLastPos.v1';
+
+function bookPosKey(tbIdx, volIdx) {
+  const tb = textbooks[tbIdx];
+  const id = (tb && tb.id) ? tb.id : String(tbIdx);
+  return id + '|' + (volIdx === null || volIdx === undefined ? '' : volIdx);
+}
+
+function loadBookPos() {
+  try { return JSON.parse(localStorage.getItem(BOOK_POS_KEY)) || {}; } catch (e) { return {}; }
+}
+
+function saveBookPos() {
+  try {
+    // 错题模式不是教材进度，不记录
+    if (typeof isWrongMode !== 'undefined' && isWrongMode) return;
+    if (currentChapter === null || currentChapter === undefined
+      || currentUnit === null || currentUnit === undefined) return;
+    const units = getCurrentUnits();
+    const ch = units[currentChapter];
+    const unit = ch && ch.units ? ch.units[currentUnit] : null;
+    if (!unit) return;
+    const all = loadBookPos();
+    all[bookPosKey(currentTextbook, currentVolume)] = {
+      tb: currentTextbook, vol: currentVolume, ci: currentChapter, ui: currentUnit,
+      mode: currentMode, idx: currentIndex || 0,
+      ch: ch.chapter || '', title: unit.title || '', at: Date.now()
+    };
+    localStorage.setItem(BOOK_POS_KEY, JSON.stringify(all));
+  } catch (e) { /* 忽略 */ }
+}
+
+function getBookPos() {
+  try { return loadBookPos()[bookPosKey(currentTextbook, currentVolume)] || null; } catch (e) { return null; }
+}
+
+function bookPosLabel(p) {
+  const modeNames = { word: '单词模式', sentence: '句子模式', dictation: '听写模式' };
+  const unitName = p.mode === 'word' ? '个词' : (p.mode === 'sentence' ? '句' : '项');
+  return (p.ch ? p.ch + ' > ' : '') + p.title + ' · 第 ' + ((p.idx || 0) + 1) + ' ' + unitName
+    + '（' + (modeNames[p.mode] || '单词模式') + '）';
+}
+
+function bookPosAgo(ts) {
+  if (!ts) return '';
+  const s = Math.floor((Date.now() - ts) / 1000);
+  if (s < 60) return '刚刚';
+  if (s < 3600) return Math.floor(s / 60) + ' 分钟前';
+  if (s < 86400) return Math.floor(s / 3600) + ' 小时前';
+  if (s < 7 * 86400) return Math.floor(s / 86400) + ' 天前';
+  return '';
+}
+
+function resumeBookPos() {
+  const p = getBookPos();
+  if (!p) return;
+  const units = getCurrentUnits();
+  const ch = units[p.ci];
+  if (!ch || !ch.units || !ch.units[p.ui]) {          // 教材结构变了，旧记录作废
+    try {
+      const all = loadBookPos();
+      delete all[bookPosKey(currentTextbook, currentVolume)];
+      localStorage.setItem(BOOK_POS_KEY, JSON.stringify(all));
+    } catch (e) { /* 忽略 */ }
+    return;
+  }
+  if (typeof window.ddLeavePractice === 'function') window.ddLeavePractice();   // 先停掉还在响的语音
+  resumeLearning(p.ci, p.ui, p.mode || 'word', p.idx || 0);
+}
+
 function getTextbookId() {
   return textbooks[currentTextbook] ? textbooks[currentTextbook].id : 'american-daily';
 }
@@ -5650,6 +5723,7 @@ async function startPractice(startIndex) {
   isTransitioning = false;
 
   renderPractice();
+  saveBookPos();          // 记住这本书/这一册现在练到哪一项
 }
 
 function renderPractice() {
@@ -6158,6 +6232,7 @@ function advanceToNext() {
   dictationSubmitted = false;
   isTransitioning = false;
 
+  saveBookPos();          // 每推进一项就更新这本书的位置
   if (!isWrongMode) saveProgress();
 
   if (isWrongMode && currentIndex >= practiceItems.length) {
@@ -6338,9 +6413,19 @@ function renderWelcome(savedProgress) {
   let resumeBtn = '';
   if (savedProgress && savedProgress.chapter !== null && savedProgress.chapter !== undefined) {
     const ch = units[savedProgress.chapter];
-    const unit = ch.units[savedProgress.unit];
+    const unit = ch && ch.units ? ch.units[savedProgress.unit] : null;   // 换过教材时旧进度会越界
     const modeNames = { word: '单词模式', sentence: '句子模式', dictation: '听写模式' };
-    resumeBtn = `<button class="btn-resume" onclick="resumeLearning(${savedProgress.chapter}, ${savedProgress.unit}, '${savedProgress.mode}', ${savedProgress.index || 0})">继续学习：${ch.chapter} > ${unit.title} (${modeNames[savedProgress.mode]})</button>`;
+    if (unit) {
+      resumeBtn = `<button class="btn-resume" onclick="resumeLearning(${savedProgress.chapter}, ${savedProgress.unit}, '${savedProgress.mode}', ${savedProgress.index || 0})">继续学习：${ch.chapter} > ${unit.title} (${modeNames[savedProgress.mode]})</button>`;
+    }
+  }
+
+  // 这本书（这一册）上次练到哪 —— 按教材分开记，切到别的书也不会被覆盖
+  const bpos = getBookPos();
+  if (bpos && (!savedProgress || savedProgress.chapter !== bpos.ci
+      || savedProgress.unit !== bpos.ui || (savedProgress.index || 0) !== (bpos.idx || 0))) {
+    const ago = bookPosAgo(bpos.at);
+    resumeBtn += `<button class="btn-resume" onclick="resumeBookPos()">回到上次：${bookPosLabel(bpos)}${ago ? ' · ' + ago : ''}</button>`;
   }
 
   area.innerHTML = `
