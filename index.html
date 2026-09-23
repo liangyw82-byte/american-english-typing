@@ -940,6 +940,20 @@ button {
 
 /* ===================== 内容管理 / 纠错 / 新增 ===================== */
 .topbar-right { display: flex; align-items: center; gap: 8px; }
+.tool-menu-wrap { position: relative; }
+.tool-menu {
+  position: absolute; right: 0; top: calc(100% + 6px); z-index: 60;
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 6px; min-width: 172px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+  display: flex; flex-direction: column; gap: 2px;
+}
+.tool-menu button {
+  background: none; border: none; color: var(--text-dim);
+  text-align: left; padding: 8px 10px; border-radius: 8px;
+  font-size: 13px; cursor: pointer; white-space: nowrap;
+}
+.tool-menu button:hover { background: var(--bg-hover); color: var(--text); }
 .btn-manage {
   padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border);
   background: var(--bg-hover); color: var(--text);
@@ -1138,8 +1152,13 @@ button {
       <button class="mode-tab" data-mode="wrong">错题集</button>
     </div>
     <div class="topbar-right">
-      <button class="btn-manage" onclick="openToleranceSettings()" title="打字容错：忽略大小写 / 标点符号 / 重音">⚙️<span class="mg-label"> 容错</span></button>
-      <button class="btn-manage" onclick="openContentManager()" title="内容管理：纠正音标/释义、新增单词短语句子">✏️<span class="mg-label"> 内容管理</span></button>
+      <div class="tool-menu-wrap">
+        <button class="btn-manage" onclick="toggleToolMenu(event)" title="工具：打字容错设置、内容管理（校音标/释义、补词条）">🧰<span class="mg-label"> 工具</span></button>
+        <div class="tool-menu" id="tool-menu" hidden>
+          <button onclick="closeToolMenu();openToleranceSettings()">⚙️ 打字容错设置</button>
+          <button onclick="closeToolMenu();openContentManager()">✏️ 内容管理</button>
+        </div>
+      </div>
       <button class="btn-manage" onclick="openSpokenNotes()" title="口语笔记：粘贴英文对话/字幕，用 AI 笔记生成练习单元">📝<span class="mg-label"> 口语笔记</span></button>
       <button class="btn-manage" onclick="openDialogueDrill()" title="情景对话口语：日常场景随机一问一答，卡住了随机给几个说法">💬<span class="mg-label"> 情景对话</span></button>
     </div>
@@ -3959,6 +3978,8 @@ function saveBookPos() {
   try {
     // 错题模式不是教材进度，不记录
     if (typeof isWrongMode !== 'undefined' && isWrongMode) return;
+    // 去二级页面（内容管理 / 口语笔记 / 情景对话）期间练习被挂起，那边做什么都不算教材进度
+    if (practiceParked) return;
     if (currentChapter === null || currentChapter === undefined
       || currentUnit === null || currentUnit === undefined) return;
     const units = getCurrentUnits();
@@ -3978,6 +3999,47 @@ function saveBookPos() {
     localStorage.setItem(BOOK_POS_KEY, JSON.stringify(all));
     updateUnitPosMarks();
   } catch (e) { /* 忽略 */ }
+}
+
+/* ---------- 二级页面（内容管理 / 口语笔记 / 情景对话 / 错题集）----------
+   这些页面会占用练习区，以前一进一出就把位置冲掉了。现在统一：
+   进去前把当前这一课这一项「挂起」，出来时原样接回去；挂起期间谁都不能改
+   这本书的位置。 */
+let practiceParked = null;
+
+function stopPracticeSound() {
+  try { if (typeof synth !== 'undefined' && synth) synth.cancel(); } catch (e) { /* 忽略 */ }
+  try { if (typeof dictationRepeatStop === 'function' && dictationRepeatStop) { dictationRepeatStop(); dictationRepeatStop = null; } } catch (e) { /* 忽略 */ }
+  try { if (typeof dictationAutoAdvanceTimer !== 'undefined' && dictationAutoAdvanceTimer) { clearInterval(dictationAutoAdvanceTimer); dictationAutoAdvanceTimer = null; } } catch (e) { /* 忽略 */ }
+  try { if (typeof window.ddStopSpeech === 'function') window.ddStopSpeech(); } catch (e) { /* 忽略 */ }
+}
+
+function parkPractice() {
+  stopPracticeSound();
+  if (practiceParked) return practiceParked;
+  if (typeof currentChapter === 'undefined' || currentChapter === null) return null;
+  if (typeof isWrongMode !== 'undefined' && isWrongMode) return null;
+  if (!practiceItems.length) return null;
+  practiceParked = {
+    tb: currentTextbook, vol: currentVolume, ci: currentChapter, ui: currentUnit,
+    mode: currentMode, idx: currentIndex
+  };
+  return practiceParked;
+}
+
+function unparkPractice() {
+  const s = practiceParked;
+  practiceParked = null;
+  stopPracticeSound();
+  if (!s) return false;
+  const units = getUnitsOf(s.tb, s.vol);
+  const ch = units[s.ci];
+  if (!ch || !ch.units || !ch.units[s.ui]) return false;      // 教材结构变了就算了
+  currentTextbook = s.tb;
+  currentVolume = s.vol;
+  renderSidebar();
+  resumeLearning(s.ci, s.ui, s.mode, s.idx);
+  return true;
 }
 
 /* 这个单元上次练到哪（同一教材 + 同一模式才算，换模式下标就不是一回事了） */
@@ -4442,6 +4504,7 @@ async function updateWrongBadge() {
 
 function openWrongItems() {
   if (currentMode !== 'wrong' && currentChapter !== null) {
+    parkPractice();      // 记住正练到哪一课的哪一项，退出错题集时接回去
     saveProgress();
   }
   wrongPracticeAll = false;
@@ -4580,6 +4643,25 @@ function toggleSidebar() {
 
 function closeSidebar() {
   document.getElementById('sidebar').classList.remove('open');
+}
+
+function toggleToolMenu(e) {
+  if (e) e.stopPropagation();
+  const m = document.getElementById('tool-menu');
+  if (!m) return;
+  m.hidden = !m.hidden;
+  if (!m.hidden) {
+    setTimeout(() => document.addEventListener('click', function close1(ev) {
+      if (ev.target.closest && ev.target.closest('.tool-menu-wrap')) return;
+      m.hidden = true;
+      document.removeEventListener('click', close1);
+    }), 0);
+  }
+}
+
+function closeToolMenu() {
+  const m = document.getElementById('tool-menu');
+  if (m) m.hidden = true;
 }
 
 async function switchTextbook(idx) {
@@ -6414,6 +6496,7 @@ function renderResults() {
 }
 
 function switchToWord() {
+  if (unparkPractice()) return;        // 从错题集 / 二级页面出来：接回原来那一课那一项
   currentMode = 'word';
   isWrongMode = false;
   updateModeTabs();
@@ -6549,6 +6632,7 @@ document.getElementById('mode-tabs').addEventListener('click', async (e) => {
     return;
   }
   const wasWrongMode = currentMode === 'wrong';
+  if (wasWrongMode && unparkPractice()) return;   // 退出错题集 → 接回原来那一课那一项
   currentMode = mode;
   isWrongMode = false;
   updateModeTabs();
@@ -6830,6 +6914,7 @@ async function fillUnitPhonetics() {
 
 /* ---------- 管理面板 ---------- */
 function openContentManager() {
+  parkPractice();        // 挂着正练的那一课，出来时原样接上（在这里改内容不会弄丢进度）
   const tb = getCurrentTextbook();
   manageState = {
     tb: currentTextbook,
@@ -7062,6 +7147,7 @@ function closeContentManager() {
   areaEl.classList.remove('manage-mode');
   const panelEl = document.getElementById('manage-panel');
   if (panelEl) panelEl.remove();
+  if (unparkPractice()) return;        // 回到打开内容管理前正在练的那一课那一项
   if (practiceItems.length && currentChapter !== null && !isWrongMode) {
     syncCurrentPracticeItem();
     renderPractice();

@@ -518,11 +518,15 @@
     if (inp && !state.result) inp.focus();
   }
 
+  window.ddStopSpeech = function () { stopSpeech(); };
+
   /* ---------------- 交互（挂到 window 供 onclick 调用） ---------------- */
   /* 离开练习区去做别的事（情景对话、口语笔记等）时调用：
      停掉正在放的语音，并返回当前进度快照，回来时原样接上 */
   window.ddLeavePractice = function () {
     stopSpeech();
+    // 挂在主页统一的「练习挂起」里：位置、模式、语音都由那边管，出来时原样接上
+    if (typeof parkPractice === 'function') return parkPractice();
     if (typeof currentChapter === 'undefined') return null;
     try {
       return {
@@ -537,6 +541,7 @@
   /* 按快照回到原来那一课、原来那一项；恢复成功返回 true */
   window.ddReturnToPractice = function (snap) {
     stopSpeech();
+    if (typeof unparkPractice === 'function' && unparkPractice()) return true;
     if (!snap || snap.ci === null || snap.ci === undefined || typeof startPractice !== 'function') return false;
     try {
       currentChapter = snap.ci;
